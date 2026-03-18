@@ -10,7 +10,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -40,7 +40,8 @@ class DatabaseService {
             name TEXT NOT NULL,
             description TEXT,
             type TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            milestone_track_id TEXT
           )
         ''');
 
@@ -53,6 +54,13 @@ class DatabaseService {
             FOREIGN KEY (habit_id) REFERENCES $habitsTable(id) ON DELETE CASCADE
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE $habitsTable ADD COLUMN milestone_track_id TEXT',
+          );
+        }
       },
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
