@@ -33,6 +33,9 @@ class DatabaseService {
     return openDatabase(
       path,
       version: _databaseVersion,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE $habitsTable (
@@ -57,13 +60,19 @@ class DatabaseService {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db.execute(
-            'ALTER TABLE $habitsTable ADD COLUMN milestone_track_id TEXT',
+          final List<Map<String, Object?>> columns =
+          await db.rawQuery('PRAGMA table_info($habitsTable)');
+
+          final bool hasMilestoneTrackId = columns.any(
+                (column) => column['name'] == 'milestone_track_id',
           );
+
+          if (!hasMilestoneTrackId) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN milestone_track_id TEXT',
+            );
+          }
         }
-      },
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
       },
     );
   }

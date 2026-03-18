@@ -4,6 +4,8 @@ enum HabitType {
 }
 
 class Habit {
+  static const Object _unset = Object();
+
   final String id;
   final String name;
   final String? description;
@@ -23,18 +25,21 @@ class Habit {
   Habit copyWith({
     String? id,
     String? name,
-    String? description,
+    Object? description = _unset,
     HabitType? type,
     DateTime? createdAt,
-    String? milestoneTrackId,
+    Object? milestoneTrackId = _unset,
   }) {
     return Habit(
       id: id ?? this.id,
       name: name ?? this.name,
-      description: description ?? this.description,
+      description:
+      description == _unset ? this.description : description as String?,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
-      milestoneTrackId: milestoneTrackId ?? this.milestoneTrackId,
+      milestoneTrackId: milestoneTrackId == _unset
+          ? this.milestoneTrackId
+          : milestoneTrackId as String?,
     );
   }
 

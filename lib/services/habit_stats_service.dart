@@ -37,47 +37,38 @@ class HabitStatsService {
   }
 
   static NextMilestoneProgress? getNextMilestoneProgress(
-    Habit habit,
-    int currentStreak,
-  ) {
+      Habit habit,
+      int currentStreak,
+      ) {
     final String? trackId = habit.milestoneTrackId;
 
     if (trackId == null || trackId.isEmpty) {
       return null;
     }
 
-    final List<HabitMilestone> trackMilestones = habitMilestones
-        .where((milestone) => milestone.trackId == trackId)
-        .toList()
-      ..sort((a, b) => a.targetDays.compareTo(b.targetDays));
+    final List<HabitMilestone> trackMilestones = getMilestonesForTrack(trackId);
 
     if (trackMilestones.isEmpty) {
       return null;
     }
 
-    HabitMilestone? nextMilestone;
     for (final milestone in trackMilestones) {
       if (milestone.targetDays > currentStreak) {
-        nextMilestone = milestone;
-        break;
+        return NextMilestoneProgress(
+          milestone: milestone,
+          daysRemaining: milestone.targetDays - currentStreak,
+        );
       }
     }
 
-    if (nextMilestone == null) {
-      return null;
-    }
-
-    return NextMilestoneProgress(
-      milestone: nextMilestone,
-      daysRemaining: nextMilestone.targetDays - currentStreak,
-    );
+    return null;
   }
 
   static int _getBuildStreak(
-    Habit habit,
-    List<HabitLog> logs,
-    DateTime today,
-  ) {
+      Habit habit,
+      List<HabitLog> logs,
+      DateTime today,
+      ) {
     int streak = 0;
     DateTime day = today;
 
@@ -103,10 +94,10 @@ class HabitStatsService {
   }
 
   static int _getAvoidStreak(
-    Habit habit,
-    List<HabitLog> logs,
-    DateTime today,
-  ) {
+      Habit habit,
+      List<HabitLog> logs,
+      DateTime today,
+      ) {
     int streak = 0;
     DateTime day = today;
     final DateTime createdDay = _dateOnly(habit.createdAt);

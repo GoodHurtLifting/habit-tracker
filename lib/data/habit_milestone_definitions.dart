@@ -1,6 +1,8 @@
 import '../models/habit_milestone.dart';
 
 class HabitMilestoneTracks {
+  HabitMilestoneTracks._();
+
   static const String quitSmoking = 'quit_smoking';
   static const String dailyWalk = 'daily_walk';
 }
@@ -9,6 +11,16 @@ const Map<String, String> milestoneTrackLabels = {
   HabitMilestoneTracks.quitSmoking: 'Quit Smoking',
   HabitMilestoneTracks.dailyWalk: 'Daily Walk',
 };
+
+const List<String> milestoneTrackOptions = [
+  HabitMilestoneTracks.quitSmoking,
+  HabitMilestoneTracks.dailyWalk,
+];
+
+String getMilestoneTrackLabel(String? trackId) {
+  if (trackId == null) return 'None';
+  return milestoneTrackLabels[trackId] ?? trackId;
+}
 
 const List<HabitMilestone> habitMilestones = [
   HabitMilestone(
@@ -76,3 +88,11 @@ const List<HabitMilestone> habitMilestones = [
     benefit: 'A month of walking is a meaningful long-term foundation.',
   ),
 ];
+
+List<HabitMilestone> getMilestonesForTrack(String trackId) {
+  final milestones =
+  habitMilestones.where((m) => m.trackId == trackId).toList();
+
+  milestones.sort((a, b) => a.targetDays.compareTo(b.targetDays));
+  return milestones;
+}

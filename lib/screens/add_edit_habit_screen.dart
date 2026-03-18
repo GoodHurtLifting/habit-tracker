@@ -69,7 +69,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_isEditMode ? 'Edit Habit' : 'Add Habit')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -110,20 +110,21 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String?>(
-              value: _selectedMilestoneTrackId,
+              initialValue: _selectedMilestoneTrackId,
               decoration: const InputDecoration(
                 labelText: 'Milestone Track',
                 border: OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem<String?>(value: null, child: Text('None')),
-                DropdownMenuItem<String?>(
-                  value: HabitMilestoneTracks.quitSmoking,
-                  child: Text('Quit Smoking'),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('None'),
                 ),
-                DropdownMenuItem<String?>(
-                  value: HabitMilestoneTracks.dailyWalk,
-                  child: Text('Daily Walk'),
+                ...milestoneTrackOptions.map(
+                      (trackId) => DropdownMenuItem<String?>(
+                    value: trackId,
+                    child: Text(getMilestoneTrackLabel(trackId)),
+                  ),
                 ),
               ],
               onChanged: (value) {

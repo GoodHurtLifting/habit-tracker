@@ -40,6 +40,15 @@ class HabitCard extends StatelessWidget {
         ? 'Undo'
         : (isBuildHabit ? 'Done' : 'Slip');
 
+    final HabitMilestone? milestone = nextMilestone;
+    final int? daysRemaining = milestoneDaysRemaining;
+
+    final String? milestoneDaysText = daysRemaining == null
+        ? null
+        : daysRemaining == 1
+        ? '1 day to go'
+        : '$daysRemaining days to go';
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: InkWell(
@@ -98,28 +107,30 @@ class HabitCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(streakText, style: const TextStyle(fontSize: 14)),
-                      if (nextMilestone != null && milestoneDaysRemaining != null) ...[
-                        const SizedBox(height: 8),
+                      if (milestone != null &&
+                          daysRemaining != null &&
+                          milestoneDaysText != null) ...[
+                        const SizedBox(height: 10),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: accentColor.withOpacity(0.08),
+                            color: accentColor.withOpacity(0.10),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Next milestone: ${nextMilestone!.title}',
+                                'Next milestone: ${milestone.title}',
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '$milestoneDaysRemaining days to go',
+                                milestoneDaysText,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
@@ -127,7 +138,7 @@ class HabitCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Expect: ${nextMilestone!.expectation}',
+                                'Expect: ${milestone.expectation}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
@@ -135,7 +146,7 @@ class HabitCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Benefit: ${nextMilestone!.benefit}',
+                                'Benefit: ${milestone.benefit}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
