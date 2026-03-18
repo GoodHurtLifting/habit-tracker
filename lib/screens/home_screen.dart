@@ -102,6 +102,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _goToEditHabitScreen(Habit habit) async {
+    final Habit? updatedHabit = await Navigator.push<Habit>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddEditHabitScreen(existingHabit: habit),
+      ),
+    );
+
+    if (updatedHabit != null) {
+      setState(() {
+        habits = habits.map((existingHabit) {
+          return existingHabit.id == updatedHabit.id
+              ? updatedHabit
+              : existingHabit;
+        }).toList();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
             totalCount: totalCount,
             onPressed: () => _toggleHabitToday(habit),
             onDelete: () => _deleteHabit(habit.id),
+            onTap: () => _goToEditHabitScreen(habit),
           );
         },
       ),

@@ -8,6 +8,7 @@ class HabitCard extends StatelessWidget {
   final int totalCount;
   final VoidCallback onPressed;
   final VoidCallback onDelete;
+  final VoidCallback onTap;
 
   const HabitCard({
     super.key,
@@ -17,6 +18,7 @@ class HabitCard extends StatelessWidget {
     required this.totalCount,
     required this.onPressed,
     required this.onDelete,
+    required this.onTap,
   });
 
   @override
@@ -38,100 +40,95 @@ class HabitCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: accentColor,
-              width: 5,
-            ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: accentColor, width: 5)),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            habit.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              habit.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: onDelete,
-                          icon: const Icon(Icons.delete_outline),
-                          tooltip: 'Delete habit',
+                          IconButton(
+                            onPressed: onDelete,
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: 'Delete habit',
+                          ),
+                        ],
+                      ),
+                      if (habit.description != null &&
+                          habit.description!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          habit.description!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ],
-                    ),
-                    if (habit.description != null &&
-                        habit.description!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        habit.description!,
+                        isBuildHabit ? 'Build Habit' : 'Avoid Habit',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: accentColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(streakText, style: const TextStyle(fontSize: 14)),
+                      const SizedBox(height: 6),
+                      Text(
+                        milestoneText,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isBuildHabit
+                            ? (isMarkedToday
+                                  ? 'Completed today'
+                                  : 'Not completed today')
+                            : (isMarkedToday
+                                  ? 'Slipped today'
+                                  : 'No slip today'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isMarkedToday ? accentColor : Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: onPressed,
+                          child: Text(buttonText),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    Text(
-                      isBuildHabit ? 'Build Habit' : 'Avoid Habit',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: accentColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      streakText,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      milestoneText,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      isBuildHabit
-                          ? (isMarkedToday
-                          ? 'Completed today'
-                          : 'Not completed today')
-                          : (isMarkedToday ? 'Slipped today' : 'No slip today'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isMarkedToday ? accentColor : Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: onPressed,
-                        child: Text(buttonText),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

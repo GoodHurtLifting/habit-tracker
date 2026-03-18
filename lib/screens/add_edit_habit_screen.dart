@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/habit.dart';
 
 class AddEditHabitScreen extends StatefulWidget {
-  const AddEditHabitScreen({super.key});
+  final Habit? existingHabit;
+
+  const AddEditHabitScreen({super.key, this.existingHabit});
 
   @override
   State<AddEditHabitScreen> createState() => _AddEditHabitScreenState();
@@ -13,6 +15,19 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   final TextEditingController _descriptionController = TextEditingController();
 
   HabitType _selectedType = HabitType.build;
+  bool get _isEditMode => widget.existingHabit != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final existingHabit = widget.existingHabit;
+    if (existingHabit != null) {
+      _nameController.text = existingHabit.name;
+      _descriptionController.text = existingHabit.description ?? '';
+      _selectedType = existingHabit.type;
+    }
+  }
 
   @override
   void dispose() {
@@ -27,29 +42,29 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a habit name.'),
-        ),
+        const SnackBar(content: Text('Please enter a habit name.')),
       );
       return;
     }
 
-    final Habit newHabit = Habit(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    final Habit savedHabit = Habit(
+      id:
+          widget.existingHabit?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
       description: description.isEmpty ? null : description,
       type: _selectedType,
-      createdAt: DateTime.now(),
+      createdAt: widget.existingHabit?.createdAt ?? DateTime.now(),
     );
 
-    Navigator.pop(context, newHabit);
+    Navigator.pop(context, savedHabit);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Habit'),
+          title: Text(_isEditMode ? 'Edit Habit' : 'Add Habit')
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -79,14 +94,8 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                 border: OutlineInputBorder(),
               ),
               items: const [
-                DropdownMenuItem(
-                  value: HabitType.build,
-                  child: Text('Build'),
-                ),
-                DropdownMenuItem(
-                  value: HabitType.avoid,
-                  child: Text('Avoid'),
-                ),
+                DropdownMenuItem(value: HabitType.build, child: Text('Build')),
+                DropdownMenuItem(value: HabitType.avoid, child: Text('Avoid')),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -101,7 +110,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _saveHabit,
-                child: const Text('Save Habit'),
+                child: Text(_isEditMode ? 'Save Changes' : 'Save Habit'),
               ),
             ),
           ],
