@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/habit.dart';
+import '../models/habit_log.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
 
@@ -12,10 +13,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late List<Habit> habits;
+  late List<HabitLog> logs;
 
   @override
   void initState() {
     super.initState();
+
     habits = [
       Habit(
         id: '1',
@@ -39,18 +42,47 @@ class _HomeScreenState extends State<HomeScreen> {
         createdAt: DateTime.now(),
       ),
     ];
+
+    logs = [];
   }
 
-  void _toggleHabitToday(String habitId) {
+  void _toggleHabitToday(Habit habit) {
+    final DateTime today = DateTime.now();
+
+    final bool hasLogForToday = logs.any((log) {
+      return log.habitId == habit.id &&
+          log.date.year == today.year &&
+          log.date.month == today.month &&
+          log.date.day == today.day;
+    });
+
     setState(() {
-      habits = habits.map((habit) {
-        if (habit.id == habitId) {
-          return habit.copyWith(
-            isMarkedToday: !habit.isMarkedToday,
-          );
-        }
-        return habit;
-      }).toList();
+      if (hasLogForToday) {
+        logs.removeWhere((log) {
+          return log.habitId == habit.id &&
+              log.date.year == today.year &&
+              log.date.month == today.month &&
+              log.date.day == today.day;
+        });
+      } else {
+        logs.add(
+          HabitLog(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            habitId: habit.id,
+            date: today,
+            status: habit.type == HabitType.build
+                ? HabitLogStatus.success
+                : HabitLogStatus.failure,
+          ),
+        );
+      }
+    });
+  }
+
+  void _deleteHabit(String habitId) {
+    setState(() {
+      habits = habits.where((habit) => habit.id != habitId).toList();
+      logs = logs.where((log) => log.habitId != habitId).toList();
     });
   }
 
@@ -75,14 +107,32 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Habit Tracker'),
       ),
-      body: ListView.builder(
+      body: habits.isEmpty
+          ? const Center(
+        child: Text(
+          'No habits yet.\nTap + to add your first habit.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+        ),
+      )
+          : ListView.builder(
         itemCount: habits.length,
         itemBuilder: (context, index) {
           final habit = habits[index];
+          final DateTime today = DateTime.now();
+
+          final bool isMarkedToday = logs.any((log) {
+            return log.habitId == habit.id &&
+                log.date.year == today.year &&
+                log.date.month == today.month &&
+                log.date.day == today.day;
+          });
 
           return HabitCard(
             habit: habit,
-            onPressed: () => _toggleHabitToday(habit.id),
+            isMarkedToday: isMarkedToday,
+            onPressed: () => _toggleHabitToday(habit),
+            onDelete: () => _deleteHabit(habit.id),
           );
         },
       ),

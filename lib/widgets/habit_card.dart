@@ -3,19 +3,22 @@ import '../models/habit.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
+  final bool isMarkedToday;
   final VoidCallback onPressed;
+  final VoidCallback onDelete;
 
   const HabitCard({
     super.key,
     required this.habit,
+    required this.isMarkedToday,
     required this.onPressed,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isBuildHabit = habit.type == HabitType.build;
     final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
-    final bool isMarkedToday = habit.isMarkedToday;
 
     final String streakText = isBuildHabit
         ? 'Streak: 0 days • Total: 0'
@@ -43,18 +46,29 @@ class HabitCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      habit.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            habit.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: onDelete,
+                          icon: const Icon(Icons.delete_outline),
+                          tooltip: 'Delete habit',
+                        ),
+                      ],
                     ),
                     if (habit.description != null &&
                         habit.description!.trim().isNotEmpty) ...[
@@ -102,13 +116,16 @@ class HabitCard extends StatelessWidget {
                         color: isMarkedToday ? accentColor : Colors.grey[700],
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        onPressed: onPressed,
+                        child: Text(buttonText),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: onPressed,
-                child: Text(buttonText),
               ),
             ],
           ),
