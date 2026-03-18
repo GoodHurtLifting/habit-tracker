@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+
 import '../models/habit.dart';
+import '../models/habit_milestone.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
   final bool isMarkedToday;
   final int streakCount;
   final int totalCount;
+  final HabitMilestone? nextMilestone;
+  final int? milestoneDaysRemaining;
   final VoidCallback onPressed;
   final VoidCallback onDelete;
   final VoidCallback onTap;
@@ -16,6 +20,8 @@ class HabitCard extends StatelessWidget {
     required this.isMarkedToday,
     required this.streakCount,
     required this.totalCount,
+    required this.nextMilestone,
+    required this.milestoneDaysRemaining,
     required this.onPressed,
     required this.onDelete,
     required this.onTap,
@@ -29,10 +35,6 @@ class HabitCard extends StatelessWidget {
     final String streakText = isBuildHabit
         ? 'Streak: $streakCount days • Total: $totalCount'
         : 'Avoidance Streak: $streakCount days • Slips: $totalCount';
-
-    final String milestoneText = isBuildHabit
-        ? 'Next milestone: Day 7'
-        : 'Next milestone: Day 3';
 
     final String buttonText = isMarkedToday
         ? 'Undo'
@@ -96,11 +98,53 @@ class HabitCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(streakText, style: const TextStyle(fontSize: 14)),
-                      const SizedBox(height: 6),
-                      Text(
-                        milestoneText,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                      ),
+                      if (nextMilestone != null && milestoneDaysRemaining != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: accentColor.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Next milestone: ${nextMilestone!.title}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$milestoneDaysRemaining days to go',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Expect: ${nextMilestone!.expectation}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Benefit: ${nextMilestone!.benefit}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Text(
                         isBuildHabit

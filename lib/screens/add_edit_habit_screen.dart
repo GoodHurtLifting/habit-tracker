@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../data/habit_milestone_definitions.dart';
 import '../models/habit.dart';
 
 class AddEditHabitScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   final TextEditingController _descriptionController = TextEditingController();
 
   HabitType _selectedType = HabitType.build;
+  String? _selectedMilestoneTrackId;
   bool get _isEditMode => widget.existingHabit != null;
 
   @override
@@ -26,6 +29,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       _nameController.text = existingHabit.name;
       _descriptionController.text = existingHabit.description ?? '';
       _selectedType = existingHabit.type;
+      _selectedMilestoneTrackId = existingHabit.milestoneTrackId;
     }
   }
 
@@ -55,6 +59,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       description: description.isEmpty ? null : description,
       type: _selectedType,
       createdAt: widget.existingHabit?.createdAt ?? DateTime.now(),
+      milestoneTrackId: _selectedMilestoneTrackId,
     );
 
     Navigator.pop(context, savedHabit);
@@ -63,9 +68,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(_isEditMode ? 'Edit Habit' : 'Add Habit')
-      ),
+      appBar: AppBar(title: Text(_isEditMode ? 'Edit Habit' : 'Add Habit')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -103,6 +106,30 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                     _selectedType = value;
                   });
                 }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String?>(
+              value: _selectedMilestoneTrackId,
+              decoration: const InputDecoration(
+                labelText: 'Milestone Track',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem<String?>(value: null, child: Text('None')),
+                DropdownMenuItem<String?>(
+                  value: HabitMilestoneTracks.quitSmoking,
+                  child: Text('Quit Smoking'),
+                ),
+                DropdownMenuItem<String?>(
+                  value: HabitMilestoneTracks.dailyWalk,
+                  child: Text('Daily Walk'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedMilestoneTrackId = value;
+                });
               },
             ),
             const SizedBox(height: 24),

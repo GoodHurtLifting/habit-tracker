@@ -194,12 +194,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   habit,
                   logs,
                 );
+                final nextMilestoneProgress =
+                    HabitStatsService.getNextMilestoneProgress(
+                  habit,
+                  streakCount,
+                );
 
                 return HabitCard(
                   habit: habit,
                   isMarkedToday: isMarkedToday,
                   streakCount: streakCount,
                   totalCount: totalCount,
+                  nextMilestone: nextMilestoneProgress?.milestone,
+                  milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
                   onPressed: () => _toggleHabitToday(habit),
                   onDelete: () => _deleteHabit(habit.id),
                   onTap: () => _goToEditHabitScreen(habit),

@@ -9,6 +9,7 @@ class Habit {
   final String? description;
   final HabitType type;
   final DateTime createdAt;
+  final String? milestoneTrackId;
 
   const Habit({
     required this.id,
@@ -16,6 +17,7 @@ class Habit {
     this.description,
     required this.type,
     required this.createdAt,
+    this.milestoneTrackId,
   });
 
   Habit copyWith({
@@ -24,6 +26,7 @@ class Habit {
     String? description,
     HabitType? type,
     DateTime? createdAt,
+    String? milestoneTrackId,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -31,6 +34,7 @@ class Habit {
       description: description ?? this.description,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
+      milestoneTrackId: milestoneTrackId ?? this.milestoneTrackId,
     );
   }
 
@@ -41,6 +45,7 @@ class Habit {
       'description': description,
       'type': type.name,
       'created_at': createdAt.toIso8601String(),
+      'milestone_track_id': milestoneTrackId,
     };
   }
 
@@ -54,6 +59,7 @@ class Habit {
         orElse: () => HabitType.build,
       ),
       createdAt: DateTime.parse(map['created_at'] as String),
+      milestoneTrackId: map['milestone_track_id'] as String?,
     );
   }
 }
