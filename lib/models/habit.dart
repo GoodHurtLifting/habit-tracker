@@ -51,6 +51,7 @@ class Habit {
       description: map['description'] as String?,
       type: HabitType.values.firstWhere(
         (habitType) => habitType.name == map['type'],
+        orElse: () => HabitType.build,
       ),
       createdAt: DateTime.parse(map['created_at'] as String),
     );

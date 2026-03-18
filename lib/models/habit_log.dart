@@ -32,6 +32,7 @@ class HabitLog {
       date: DateTime.parse(map['date'] as String),
       status: HabitLogStatus.values.firstWhere(
         (logStatus) => logStatus.name == map['status'],
+        orElse: () => HabitLogStatus.success,
       ),
     );
   }

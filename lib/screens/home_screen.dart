@@ -54,6 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (hasLogForToday) {
       await _databaseService.deleteHabitLogByDate(habit.id, today);
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         logs = logs.where((log) {
           return !(log.habitId == habit.id &&
@@ -73,6 +78,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       await _databaseService.insertHabitLog(newLog);
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         logs = [...logs, newLog];
       });
@@ -81,6 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _deleteHabit(String habitId) async {
     await _databaseService.deleteHabit(habitId);
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       habits = habits.where((habit) => habit.id != habitId).toList();
@@ -99,6 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (newHabit != null) {
       await _databaseService.insertHabit(newHabit);
 
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         habits = [...habits, newHabit];
       });
@@ -116,6 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (updatedHabit != null) {
       await _databaseService.updateHabit(updatedHabit);
 
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         habits = habits.map((existingHabit) {
           return existingHabit.id == updatedHabit.id
@@ -129,8 +151,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Habit Tracker'),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
