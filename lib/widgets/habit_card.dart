@@ -4,6 +4,8 @@ import '../models/habit.dart';
 class HabitCard extends StatelessWidget {
   final Habit habit;
   final bool isMarkedToday;
+  final int streakCount;
+  final int totalCount;
   final VoidCallback onPressed;
   final VoidCallback onDelete;
 
@@ -11,6 +13,8 @@ class HabitCard extends StatelessWidget {
     super.key,
     required this.habit,
     required this.isMarkedToday,
+    required this.streakCount,
+    required this.totalCount,
     required this.onPressed,
     required this.onDelete,
   });
@@ -21,8 +25,8 @@ class HabitCard extends StatelessWidget {
     final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
 
     final String streakText = isBuildHabit
-        ? 'Streak: 0 days • Total: 0'
-        : 'Avoidance Streak: 0 days • Slips: 0';
+        ? 'Streak: $streakCount days • Total: $totalCount'
+        : 'Avoidance Streak: $streakCount days • Slips: $totalCount';
 
     final String milestoneText = isBuildHabit
         ? 'Next milestone: Day 7'

@@ -3,6 +3,7 @@ import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
+import '../services/habit_stats_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,9 +129,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 log.date.day == today.day;
           });
 
+          final int streakCount = HabitStatsService.getCurrentStreak(habit, logs);
+          final int totalCount = HabitStatsService.getTotalCount(habit, logs);
+
           return HabitCard(
             habit: habit,
             isMarkedToday: isMarkedToday,
+            streakCount: streakCount,
+            totalCount: totalCount,
             onPressed: () => _toggleHabitToday(habit),
             onDelete: () => _deleteHabit(habit.id),
           );
