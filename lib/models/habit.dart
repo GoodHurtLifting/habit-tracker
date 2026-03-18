@@ -31,7 +31,28 @@ class Habit {
       description: description ?? this.description,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'type': type.name,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Habit.fromMap(Map<String, Object?> map) {
+    return Habit(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      description: map['description'] as String?,
+      type: HabitType.values.firstWhere(
+        (habitType) => habitType.name == map['type'],
+      ),
+      createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
 }
