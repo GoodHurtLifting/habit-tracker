@@ -8,6 +8,7 @@ import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
+import 'overview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -150,6 +151,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _goToOverviewScreen() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const OverviewScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -166,6 +176,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Habit Tracker'),
+        actions: [
+          IconButton(
+            onPressed: _goToOverviewScreen,
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'Overview calendar',
+          ),
+        ],
       ),
       body: habits.isEmpty
           ? const Center(

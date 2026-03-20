@@ -89,6 +89,23 @@ class DatabaseService {
     return rows.map(HabitLog.fromMap).toList();
   }
 
+  Future<List<HabitLog>> getHabitLogsForDateRange(
+    DateTime startDateInclusive,
+    DateTime endDateExclusive,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      habitLogsTable,
+      where: 'date >= ? AND date < ?',
+      whereArgs: [
+        startDateInclusive.toIso8601String(),
+        endDateExclusive.toIso8601String(),
+      ],
+      orderBy: 'date ASC',
+    );
+    return rows.map(HabitLog.fromMap).toList();
+  }
+
   Future<void> insertHabit(Habit habit) async {
     final db = await database;
     await db.insert(
