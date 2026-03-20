@@ -30,6 +30,14 @@ String getMilestoneTrackLabel(String? trackId) {
 
 const List<HabitMilestone> habitMilestones = [
   HabitMilestone(
+    id: 'quit_smoking_day_0',
+    trackId: HabitMilestoneTracks.quitSmoking,
+    targetDays: 0,
+    title: 'Be smoke-free the rest of the day',
+    expectation: 'Cravings will be tough. Stay focused and avoid strong triggers.',
+    benefit: 'Your body has already started recovering, including improved oxygen levels and lower carbon monoxide.',
+  ),
+  HabitMilestone(
     id: 'quit_smoking_day_1',
     trackId: HabitMilestoneTracks.quitSmoking,
     targetDays: 1,
@@ -94,6 +102,14 @@ const List<HabitMilestone> habitMilestones = [
     benefit: 'You have built a major long-term health and identity shift over the past year.',
   ),
   HabitMilestone(
+    id: 'daily_walk_day_0',
+    trackId: HabitMilestoneTracks.dailyWalk,
+    targetDays: 0,
+    title: 'First day walking',
+    expectation: 'Just get out there and do it but do not over do it.',
+    benefit: 'Expect a mood boost when your are done.',
+  ),
+  HabitMilestone(
     id: 'daily_walk_day_3',
     trackId: HabitMilestoneTracks.dailyWalk,
     targetDays: 3,
@@ -124,6 +140,14 @@ const List<HabitMilestone> habitMilestones = [
     title: 'Thirty-day walking milestone',
     expectation: 'Keep the goal realistic so it stays sustainable.',
     benefit: 'A month of walking is a meaningful long-term foundation.',
+  ),
+  HabitMilestone(
+    id: 'quit_cocaine_day_0',
+    trackId: HabitMilestoneTracks.quitCocaine,
+    targetDays: 0,
+    title: 'Make it through the day',
+    expectation: 'Fatigue, low mood, irritability, and strong cravings can hit early.',
+    benefit: 'Getting through the first day is an important break from the cycle of use.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_1',
@@ -181,7 +205,14 @@ const List<HabitMilestone> habitMilestones = [
     expectation: 'Some psychological symptoms may linger, but they often become easier to manage over time.',
     benefit: 'You have built real distance from active use and strengthened a new direction.',
   ),
-
+  HabitMilestone(
+    id: 'quit_drinking_day_0',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 0,
+    title: 'Do not have another drink',
+    expectation: 'Sleep or mood may still feel uneven today as your body adjusts.',
+    benefit: 'Your body is beginning to rehydrate and recover from recent alcohol use.',
+  ),
   HabitMilestone(
     id: 'quit_drinking_day_1',
     trackId: HabitMilestoneTracks.quitDrinking,
