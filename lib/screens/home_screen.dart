@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/habit.dart';
+import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
@@ -199,6 +200,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   habit,
                   streakCount,
                 );
+                final HabitBenefitMessage? dailyBenefitMessage =
+                    HabitStatsService.getDailyBenefitMessage(
+                  habit,
+                  streakCount,
+                );
 
                 return HabitCard(
                   habit: habit,
@@ -207,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   totalCount: totalCount,
                   nextMilestone: nextMilestoneProgress?.milestone,
                   milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
+                  dailyBenefitMessage: dailyBenefitMessage,
                   onPressed: () => _toggleHabitToday(habit),
                   onDelete: () => _deleteHabit(habit.id),
                   onTap: () => _goToEditHabitScreen(habit),

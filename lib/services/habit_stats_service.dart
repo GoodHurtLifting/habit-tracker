@@ -1,4 +1,6 @@
+import '../data/habit_benefit_definitions.dart';
 import '../data/habit_milestone_definitions.dart';
+import '../models/habit_benefit_message.dart';
 import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
@@ -62,6 +64,26 @@ class HabitStatsService {
     }
 
     return null;
+  }
+
+  static HabitBenefitMessage? getDailyBenefitMessage(
+    Habit habit,
+    int currentStreak,
+  ) {
+    final String? trackId = habit.milestoneTrackId;
+
+    if (trackId == null || trackId.isEmpty) {
+      return null;
+    }
+
+    final List<HabitBenefitMessage> trackBenefits = getBenefitsForTrack(trackId);
+
+    if (trackBenefits.isEmpty) {
+      return null;
+    }
+
+    final int selectedIndex = currentStreak % trackBenefits.length;
+    return trackBenefits[selectedIndex];
   }
 
   static int _getBuildStreak(
