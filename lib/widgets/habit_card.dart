@@ -9,6 +9,7 @@ class HabitCard extends StatelessWidget {
   final bool isMarkedToday;
   final int streakCount;
   final int totalCount;
+  final HabitMilestone? currentMilestone;
   final HabitMilestone? nextMilestone;
   final int? milestoneDaysRemaining;
   final HabitBenefitMessage? dailyBenefitMessage;
@@ -22,6 +23,7 @@ class HabitCard extends StatelessWidget {
     required this.isMarkedToday,
     required this.streakCount,
     required this.totalCount,
+    required this.currentMilestone,
     required this.nextMilestone,
     required this.milestoneDaysRemaining,
     required this.dailyBenefitMessage,
@@ -41,9 +43,10 @@ class HabitCard extends StatelessWidget {
 
     final String buttonText = isMarkedToday ? 'Undo' : (isBuildHabit ? 'Done' : 'Slip');
 
-    final HabitMilestone? milestone = nextMilestone;
+    final HabitMilestone? activeMilestone = currentMilestone;
+    final HabitMilestone? upcomingMilestone = nextMilestone;
     final int? daysRemaining = milestoneDaysRemaining;
-    final HabitBenefitMessage? benefitMessage = dailyBenefitMessage;
+    final HabitBenefitMessage? perkMessage = dailyBenefitMessage;
 
     final String? milestoneDaysText = daysRemaining == null
         ? null
@@ -108,7 +111,7 @@ class HabitCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(streakText, style: const TextStyle(fontSize: 14)),
-                      if (benefitMessage != null) ...[
+                      if (activeMilestone != null) ...[
                         const SizedBox(height: 10),
                         Container(
                           width: double.infinity,
@@ -121,26 +124,27 @@ class HabitCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Today’s benefit',
-                                style: TextStyle(
-                                  fontSize: 12,
+                                'Current milestone: ${activeMilestone.title}',
+                                style: const TextStyle(
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: accentColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                benefitMessage.text,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                'Why it matters: ${activeMilestone.benefit}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ],
-                      if (milestone != null && daysRemaining != null && milestoneDaysText != null) ...[
+                      if (upcomingMilestone != null &&
+                          daysRemaining != null &&
+                          milestoneDaysText != null) ...[
                         const SizedBox(height: 8),
                         Container(
                           width: double.infinity,
@@ -153,7 +157,7 @@ class HabitCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Next milestone: ${milestone.title}',
+                                'Next milestone: ${upcomingMilestone.title}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -169,7 +173,7 @@ class HabitCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Expect: ${milestone.expectation}',
+                                'What to expect: ${upcomingMilestone.expectation}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
@@ -177,7 +181,42 @@ class HabitCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Benefit: ${milestone.benefit}',
+                                'Why it matters: ${upcomingMilestone.benefit}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (perkMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Today’s perk',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                perkMessage.text,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[700],
