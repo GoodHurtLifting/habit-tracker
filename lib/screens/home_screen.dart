@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
+import '../models/habit_milestone.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
 import '../widgets/habit_card.dart';
@@ -200,6 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   habit,
                   streakCount,
                 );
+                final HabitMilestone? currentMilestone =
+                    HabitStatsService.getCurrentMilestone(
+                  habit,
+                  streakCount,
+                );
                 final HabitBenefitMessage? dailyBenefitMessage =
                     HabitStatsService.getDailyBenefitMessage(
                   habit,
@@ -211,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   isMarkedToday: isMarkedToday,
                   streakCount: streakCount,
                   totalCount: totalCount,
+                  currentMilestone: currentMilestone,
                   nextMilestone: nextMilestoneProgress?.milestone,
                   milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
                   dailyBenefitMessage: dailyBenefitMessage,

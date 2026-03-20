@@ -66,6 +66,35 @@ class HabitStatsService {
     return null;
   }
 
+  static HabitMilestone? getCurrentMilestone(
+    Habit habit,
+    int currentStreak,
+  ) {
+    final String? trackId = habit.milestoneTrackId;
+
+    if (trackId == null || trackId.isEmpty) {
+      return null;
+    }
+
+    final List<HabitMilestone> trackMilestones = getMilestonesForTrack(trackId);
+
+    if (trackMilestones.isEmpty) {
+      return null;
+    }
+
+    HabitMilestone? currentMilestone;
+
+    for (final milestone in trackMilestones) {
+      if (milestone.targetDays <= currentStreak) {
+        currentMilestone = milestone;
+      } else {
+        break;
+      }
+    }
+
+    return currentMilestone;
+  }
+
   static HabitBenefitMessage? getDailyBenefitMessage(
     Habit habit,
     int currentStreak,
