@@ -98,9 +98,23 @@ class HabitStatsService {
       List<HabitLog> logs,
       DateTime today,
       ) {
-    int streak = 0;
-    DateTime day = today;
     final DateTime createdDay = _dateOnly(habit.createdAt);
+
+    final bool hasFailureToday = logs.any((log) {
+      final DateTime logDate = _dateOnly(log.date);
+      return log.habitId == habit.id &&
+          log.status == HabitLogStatus.failure &&
+          logDate.year == today.year &&
+          logDate.month == today.month &&
+          logDate.day == today.day;
+    });
+
+    if (hasFailureToday) {
+      return 0;
+    }
+
+    int streak = 0;
+    DateTime day = today.subtract(const Duration(days: 1));
 
     while (!day.isBefore(createdDay)) {
       final bool hasFailure = logs.any((log) {
@@ -112,12 +126,12 @@ class HabitStatsService {
             logDate.day == day.day;
       });
 
-      if (!hasFailure) {
-        streak++;
-        day = day.subtract(const Duration(days: 1));
-      } else {
+      if (hasFailure) {
         break;
       }
+
+      streak++;
+      day = day.subtract(const Duration(days: 1));
     }
 
     return streak;
