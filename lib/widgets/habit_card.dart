@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/habit.dart';
+import '../models/habit_benefit_message.dart';
 import '../models/habit_milestone.dart';
 
 class HabitCard extends StatelessWidget {
@@ -10,6 +11,7 @@ class HabitCard extends StatelessWidget {
   final int totalCount;
   final HabitMilestone? nextMilestone;
   final int? milestoneDaysRemaining;
+  final HabitBenefitMessage? dailyBenefitMessage;
   final VoidCallback onPressed;
   final VoidCallback onDelete;
   final VoidCallback onTap;
@@ -22,6 +24,7 @@ class HabitCard extends StatelessWidget {
     required this.totalCount,
     required this.nextMilestone,
     required this.milestoneDaysRemaining,
+    required this.dailyBenefitMessage,
     required this.onPressed,
     required this.onDelete,
     required this.onTap,
@@ -42,6 +45,7 @@ class HabitCard extends StatelessWidget {
 
     final HabitMilestone? milestone = nextMilestone;
     final int? daysRemaining = milestoneDaysRemaining;
+    final HabitBenefitMessage? benefitMessage = dailyBenefitMessage;
 
     final String? milestoneDaysText = daysRemaining == null
         ? null
@@ -153,6 +157,17 @@ class HabitCard extends StatelessWidget {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      ],
+                      if (benefitMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Today’s benefit: ${benefitMessage.text}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
