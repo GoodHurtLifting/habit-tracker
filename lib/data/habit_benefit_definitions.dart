@@ -87,6 +87,57 @@ const List<HabitBenefitMessage> habitBenefitMessages = [
     trackId: HabitMilestoneTracks.quitCocaine,
     text: 'A more stable routine can help life feel more manageable.',
   ),
+
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_1',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Better hydration can help you feel more clear and steady.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_2',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Alcohol-free sleep can become more restorative over time.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_3',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Clearer thinking can make daily decisions easier.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_4',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Less bloating and better energy can show up earlier than expected.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_5',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Many people notice steadier moods as recovery continues.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_6',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Money not spent on alcohol can support what matters most to you.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_7',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Saying no to alcohol can create more trust in yourself.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_8',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Better routines can make stressful days easier to manage.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_9',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Improved relationships often start with more consistency and presence.',
+  ),
+  HabitBenefitMessage(
+    id: 'quit_drinking_benefit_10',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    text: 'Each alcohol-free day strengthens a more stable future.',
+  ),
 ];
 
 List<HabitBenefitMessage> getBenefitsForTrack(String trackId) {

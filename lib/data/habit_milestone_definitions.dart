@@ -6,18 +6,21 @@ class HabitMilestoneTracks {
   static const String quitSmoking = 'quit_smoking';
   static const String dailyWalk = 'daily_walk';
   static const String quitCocaine = 'quit_cocaine';
+  static const String quitDrinking = 'quit_drinking';
 }
 
 const Map<String, String> milestoneTrackLabels = {
   HabitMilestoneTracks.quitSmoking: 'Quit Smoking',
   HabitMilestoneTracks.dailyWalk: 'Daily Walk',
   HabitMilestoneTracks.quitCocaine: 'Quit Cocaine',
+  HabitMilestoneTracks.quitDrinking: 'Quit Drinking',
 };
 
 const List<String> milestoneTrackOptions = [
   HabitMilestoneTracks.quitSmoking,
   HabitMilestoneTracks.dailyWalk,
   HabitMilestoneTracks.quitCocaine,
+  HabitMilestoneTracks.quitDrinking,
 ];
 
 String getMilestoneTrackLabel(String? trackId) {
@@ -177,6 +180,63 @@ const List<HabitMilestone> habitMilestones = [
     title: 'Six-month milestone',
     expectation: 'Some psychological symptoms may linger, but they often become easier to manage over time.',
     benefit: 'You have built real distance from active use and strengthened a new direction.',
+  ),
+
+  HabitMilestone(
+    id: 'quit_drinking_day_1',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 1,
+    title: 'First alcohol-free day',
+    expectation: 'Sleep or mood may still feel uneven today as your body adjusts.',
+    benefit: 'Your body is beginning to rehydrate and recover from recent alcohol use.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_7',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 7,
+    title: 'One alcohol-free week',
+    expectation: 'Cravings or social routines may still pull at you this week.',
+    benefit: 'Many people notice less bloating, steadier energy, and better sleep starting here.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_21',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 21,
+    title: 'Three-week milestone',
+    expectation: 'Stress or familiar situations can still trigger urges, so keep your plan simple.',
+    benefit: 'Digestion, blood pressure, and day-to-day stability may continue improving.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_30',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 30,
+    title: 'One month alcohol-free',
+    expectation: 'Consistency matters more than motivation as this becomes a real routine.',
+    benefit: 'Clearer thinking, better concentration, and a healthier rhythm may feel more noticeable.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_90',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 90,
+    title: 'Three-month milestone',
+    expectation: 'Old environments and overconfidence can still create risk, so keep guardrails in place.',
+    benefit: 'Cravings may decrease and your energy may feel more consistent.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_180',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 180,
+    title: 'Six-month milestone',
+    expectation: 'Protect the routines and support systems that helped you get here.',
+    benefit: 'Long-term recovery benefits may start to feel more real and sustainable.',
+  ),
+  HabitMilestone(
+    id: 'quit_drinking_day_365',
+    trackId: HabitMilestoneTracks.quitDrinking,
+    targetDays: 365,
+    title: 'One year alcohol-free',
+    expectation: 'Keep reinforcing the lifestyle choices that made this progress possible.',
+    benefit: 'This marks a major identity shift and meaningful long-term progress.',
   ),
 ];
 
