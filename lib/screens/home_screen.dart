@@ -4,8 +4,11 @@ import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
+import '../models/weekly_summary.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
+import '../services/weekly_summary_service.dart';
+import '../utils/date_rules.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
 import 'overview_screen.dart';
@@ -19,9 +22,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseService _databaseService = DatabaseService.instance;
+  final WeeklySummaryService _weeklySummaryService = WeeklySummaryService();
 
   List<Habit> habits = [];
   List<HabitLog> logs = [];
+  WeeklySummary? _mostRecentWeeklySummary;
   bool _isLoading = true;
   final Set<String> _expandedHabitIds = <String>{};
 
@@ -32,8 +37,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
+    await _weeklySummaryService.ensureWeeklySummariesUpToDate();
     final loadedHabits = await _databaseService.getHabits();
     final loadedLogs = await _databaseService.getHabitLogs();
+    final mostRecentWeeklySummary =
+        await _weeklySummaryService.getMostRecentWeeklySummary();
 
     if (!mounted) {
       return;
@@ -42,12 +50,19 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       habits = loadedHabits;
       logs = loadedLogs;
+      _mostRecentWeeklySummary = mostRecentWeeklySummary;
       _isLoading = false;
     });
   }
 
   Future<void> _toggleHabitToday(Habit habit) async {
-    final DateTime today = DateTime.now();
+    final DateTime today = DateRules.normalizeDate(DateTime.now());
+    final DateTime weekStart = DateRules.startOfWeekMonday(today);
+    final bool isWeekLocked = await _weeklySummaryService.isWeekLocked(weekStart);
+
+    if (!DateRules.canEditDate(today) || isWeekLocked) {
+      return;
+    }
 
     final bool hasLogForToday = logs.any((log) {
       return log.habitId == habit.id &&
@@ -160,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => const OverviewScreen(),
       ),
     );
+    await _loadData();
   }
 
   @override
@@ -189,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: habits.isEmpty
+      body: habits.isEmpty && _mostRecentWeeklySummary == null
           ? const Center(
               child: Text(
                 'No habits yet.\nTap + to add your first habit.',
@@ -197,10 +213,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 16),
               ),
             )
-          : ListView.builder(
-              itemCount: habits.length,
-              itemBuilder: (context, index) {
-                final habit = habits[index];
+          : ListView(
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                if (_mostRecentWeeklySummary != null)
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'This week\u2019s summary',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Goal hits: ${_mostRecentWeeklySummary!.totalGoalHits}',
+                          ),
+                          Text(
+                            'Slips: ${_mostRecentWeeklySummary!.totalSlips}',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ...habits.map((habit) {
                 final DateTime today = DateTime.now();
 
                 final bool isMarkedToday = logs.any((log) {
@@ -258,7 +299,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 );
-              },
+                }).toList(),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _goToAddHabitScreen,
