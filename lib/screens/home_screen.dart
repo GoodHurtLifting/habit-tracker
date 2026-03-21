@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Habit> habits = [];
   List<HabitLog> logs = [];
   bool _isLoading = true;
+  final Set<String> _expandedHabitIds = <String>{};
 
   @override
   void initState() {
@@ -102,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       habits = habits.where((habit) => habit.id != habitId).toList();
       logs = logs.where((log) => log.habitId != habitId).toList();
+      _expandedHabitIds.remove(habitId);
     });
   }
 
@@ -238,9 +240,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   nextMilestone: nextMilestoneProgress?.milestone,
                   milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
                   dailyBenefitMessage: dailyBenefitMessage,
+                  isExpanded: _expandedHabitIds.contains(habit.id),
                   onPressed: () => _toggleHabitToday(habit),
                   onDelete: () => _deleteHabit(habit.id),
-                  onTap: () => _goToEditHabitScreen(habit),
+                  onToggleExpanded: () {
+                    setState(() {
+                      if (_expandedHabitIds.contains(habit.id)) {
+                        _expandedHabitIds.remove(habit.id);
+                      } else {
+                        _expandedHabitIds.add(habit.id);
+                      }
+                    });
+                  },
                 );
               },
             ),
