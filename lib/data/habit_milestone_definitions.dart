@@ -5,6 +5,7 @@ class HabitMilestoneTracks {
 
   static const String quitSmoking = 'quit_smoking';
   static const String dailyWalk = 'daily_walk';
+  static const String readTwentyMinutes = 'read_twenty_minutes';
   static const String quitCocaine = 'quit_cocaine';
   static const String quitDrinking = 'quit_drinking';
 }
@@ -12,6 +13,7 @@ class HabitMilestoneTracks {
 const Map<String, String> milestoneTrackLabels = {
   HabitMilestoneTracks.quitSmoking: 'Quit Smoking',
   HabitMilestoneTracks.dailyWalk: 'Daily Walk',
+  HabitMilestoneTracks.readTwentyMinutes: 'Read 20 Minutes',
   HabitMilestoneTracks.quitCocaine: 'Quit Cocaine',
   HabitMilestoneTracks.quitDrinking: 'Quit Drinking',
 };
@@ -19,6 +21,7 @@ const Map<String, String> milestoneTrackLabels = {
 const List<String> milestoneTrackOptions = [
   HabitMilestoneTracks.quitSmoking,
   HabitMilestoneTracks.dailyWalk,
+  HabitMilestoneTracks.readTwentyMinutes,
   HabitMilestoneTracks.quitCocaine,
   HabitMilestoneTracks.quitDrinking,
 ];
@@ -140,6 +143,78 @@ const List<HabitMilestone> habitMilestones = [
     title: 'Thirty-day walking milestone',
     expectation: 'Keep the goal realistic so it stays sustainable.',
     benefit: 'A month of walking is a meaningful long-term foundation.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_0',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 0,
+    title: 'Read for 20 minutes today',
+    expectation: 'Keep it simple: choose something easy to start and just show up.',
+    benefit: 'A short reading session can help your mind slow down and focus.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_3',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 3,
+    title: 'Three days of reading',
+    expectation: 'You may still be testing when and where reading fits best.',
+    benefit: 'Early repetition builds consistency faster than perfect sessions.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_7',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 7,
+    title: 'One-week reading streak',
+    expectation: 'Some days may feel distracted; finishing the 20 minutes still counts.',
+    benefit: 'A full week helps turn reading into a reliable part of your day.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_14',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 14,
+    title: 'Two-week reading rhythm',
+    expectation: 'Busy days can disrupt your routine, so keep your plan flexible.',
+    benefit: 'Two weeks of practice can support stronger focus and follow-through.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_30',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 30,
+    title: 'Thirty-day reading milestone',
+    expectation: 'Protect this habit on low-energy days by keeping the goal realistic.',
+    benefit: 'A month of daily reading can build momentum in attention and vocabulary.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_60',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 60,
+    title: 'Two months consistent',
+    expectation: 'Motivation may fluctuate now, so rely on routine more than mood.',
+    benefit: 'Reading can start to feel more automatic when you repeat it this often.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_90',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 90,
+    title: 'Three-month reading habit',
+    expectation: 'Keep removing friction so this stays sustainable in real life.',
+    benefit: 'You are shifting from trying to read to seeing yourself as a reader.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_180',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 180,
+    title: 'Six-month milestone',
+    expectation: 'Stay consistent through travel, stress, and schedule changes.',
+    benefit: 'Long-term consistency like this can anchor a calmer, more intentional routine.',
+  ),
+  HabitMilestone(
+    id: 'read_twenty_minutes_day_365',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    targetDays: 365,
+    title: 'One year of daily reading',
+    expectation: 'Keep guarding the time and environment that made this possible.',
+    benefit: 'A year of reading is a meaningful identity shift and lasting personal investment.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_0',
