@@ -15,6 +15,7 @@ class HabitCard extends StatelessWidget {
   final HabitBenefitMessage? dailyBenefitMessage;
   final bool isExpanded;
   final VoidCallback onPressed;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onToggleExpanded;
 
@@ -30,6 +31,7 @@ class HabitCard extends StatelessWidget {
     required this.dailyBenefitMessage,
     required this.isExpanded,
     required this.onPressed,
+    required this.onEdit,
     required this.onDelete,
     required this.onToggleExpanded,
   });
@@ -231,10 +233,20 @@ class HabitCard extends StatelessWidget {
                       if (isExpanded)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4),
-                          child: IconButton(
-                            onPressed: onDelete,
-                            icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Delete habit',
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: onEdit,
+                                icon: const Icon(Icons.edit_outlined),
+                                tooltip: 'Edit habit',
+                              ),
+                              IconButton(
+                                onPressed: onDelete,
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete habit',
+                              ),
+                            ],
                           ),
                         ),
                     ],

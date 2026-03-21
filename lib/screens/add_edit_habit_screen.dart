@@ -100,7 +100,9 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                 DropdownMenuItem(value: HabitType.build, child: Text('Build')),
                 DropdownMenuItem(value: HabitType.avoid, child: Text('Avoid')),
               ],
-              onChanged: (value) {
+              onChanged: _isEditMode
+                  ? null
+                  : (value) {
                 if (value != null) {
                   setState(() {
                     _selectedType = value;
@@ -108,6 +110,16 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                 }
               },
             ),
+            if (_isEditMode) ...[
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Habit type cannot be changed after creation.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             DropdownButtonFormField<String?>(
               initialValue: _selectedMilestoneTrackId,
