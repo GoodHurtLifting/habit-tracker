@@ -13,6 +13,7 @@ import '../utils/date_rules.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
 import 'overview_screen.dart';
+import 'stats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -183,6 +184,15 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadData();
   }
 
+  Future<void> _goToStatsScreen() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const StatsScreen(),
+      ),
+    );
+  }
+
   Future<void> _pauseHabit(Habit habit) async {
     await _databaseService.pauseHabit(habit.id, DateTime.now());
 
@@ -326,6 +336,11 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Habit Tracker'),
         actions: [
+          IconButton(
+            onPressed: _goToStatsScreen,
+            icon: const Icon(Icons.bar_chart),
+            tooltip: 'Stats',
+          ),
           IconButton(
             onPressed: _goToOverviewScreen,
             icon: const Icon(Icons.calendar_month),
