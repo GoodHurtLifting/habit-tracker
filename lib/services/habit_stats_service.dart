@@ -16,6 +16,14 @@ class NextMilestoneProgress {
 }
 
 class HabitStatsService {
+  static bool isHabitArchived(Habit habit) {
+    return habit.isArchived;
+  }
+
+  static List<Habit> getVisibleHabits(List<Habit> habits) {
+    return habits.where((habit) => !isHabitArchived(habit)).toList();
+  }
+
   static bool isHabitCurrentlyPaused(Habit habit) {
     return habit.isPaused;
   }
@@ -56,6 +64,10 @@ class HabitStatsService {
   }
 
   static bool canLogHabitForDate(Habit habit, DateTime date) {
+    if (isHabitArchived(habit)) {
+      return false;
+    }
+
     if (isHabitCurrentlyPaused(habit)) {
       return false;
     }

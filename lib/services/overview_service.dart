@@ -34,7 +34,9 @@ class OverviewService {
     await ensureWeeklySummariesUpToDate();
 
     final DateTime day = DateTime(date.year, date.month, date.day);
-    final List<Habit> habits = await _databaseService.getHabits();
+    final List<Habit> habits = HabitStatsService.getVisibleHabits(
+      await _databaseService.getHabits(),
+    );
     final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
 
     final Map<String, HabitLog> logsByHabitId = {
@@ -91,14 +93,15 @@ class OverviewService {
     final DateTime monthStart = DateTime(month.year, month.month, 1);
     final DateTime nextMonthStart = DateTime(month.year, month.month + 1, 1);
 
-    final List<Habit> habits = await _databaseService.getHabits();
+    final List<Habit> allHabits = await _databaseService.getHabits();
+    final List<Habit> visibleHabits = HabitStatsService.getVisibleHabits(allHabits);
     final List<HabitLog> logs = await _databaseService.getHabitLogsForDateRange(
       monthStart,
       nextMonthStart,
     );
 
     final Map<String, String> habitNameById = {
-      for (final habit in habits) habit.id: habit.name,
+      for (final habit in allHabits) habit.id: habit.name,
     };
 
     final Map<DateTime, Set<String>> goalsByDay = {};
@@ -140,7 +143,7 @@ class OverviewService {
         ..sort();
       final List<String> slips = (slipsByDay[day] ?? <String>{}).toList()..sort();
       final bool hasActivity = goalHits.isNotEmpty || slips.isNotEmpty;
-      final bool hasLoggableHabit = habits.any(
+      final bool hasLoggableHabit = visibleHabits.any(
         (habit) => HabitStatsService.canLogHabitForDate(habit, day),
       );
 
