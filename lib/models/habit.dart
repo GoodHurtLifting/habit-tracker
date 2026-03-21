@@ -12,6 +12,9 @@ class Habit {
   final HabitType type;
   final DateTime createdAt;
   final String? milestoneTrackId;
+  final bool isPaused;
+  final DateTime? pausedAt;
+  final DateTime? resumedAt;
 
   const Habit({
     required this.id,
@@ -20,6 +23,9 @@ class Habit {
     required this.type,
     required this.createdAt,
     this.milestoneTrackId,
+    this.isPaused = false,
+    this.pausedAt,
+    this.resumedAt,
   });
 
   Habit copyWith({
@@ -29,6 +35,9 @@ class Habit {
     HabitType? type,
     DateTime? createdAt,
     Object? milestoneTrackId = _unset,
+    bool? isPaused,
+    Object? pausedAt = _unset,
+    Object? resumedAt = _unset,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -40,6 +49,9 @@ class Habit {
       milestoneTrackId: milestoneTrackId == _unset
           ? this.milestoneTrackId
           : milestoneTrackId as String?,
+      isPaused: isPaused ?? this.isPaused,
+      pausedAt: pausedAt == _unset ? this.pausedAt : pausedAt as DateTime?,
+      resumedAt: resumedAt == _unset ? this.resumedAt : resumedAt as DateTime?,
     );
   }
 
@@ -51,6 +63,9 @@ class Habit {
       'type': type.name,
       'created_at': createdAt.toIso8601String(),
       'milestone_track_id': milestoneTrackId,
+      'is_paused': isPaused ? 1 : 0,
+      'paused_at': pausedAt?.toIso8601String(),
+      'resumed_at': resumedAt?.toIso8601String(),
     };
   }
 
@@ -65,6 +80,13 @@ class Habit {
       ),
       createdAt: DateTime.parse(map['created_at'] as String),
       milestoneTrackId: map['milestone_track_id'] as String?,
+      isPaused: (map['is_paused'] as int? ?? 0) == 1,
+      pausedAt: map['paused_at'] == null
+          ? null
+          : DateTime.parse(map['paused_at'] as String),
+      resumedAt: map['resumed_at'] == null
+          ? null
+          : DateTime.parse(map['resumed_at'] as String),
     );
   }
 }

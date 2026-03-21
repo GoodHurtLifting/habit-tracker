@@ -16,6 +16,53 @@ class NextMilestoneProgress {
 }
 
 class HabitStatsService {
+  static bool isHabitCurrentlyPaused(Habit habit) {
+    return habit.isPaused;
+  }
+
+  static DateTime getEffectiveStreakStartBoundary(Habit habit) {
+    final DateTime createdDay = _dateOnly(habit.createdAt);
+    final DateTime? resumedDay = habit.resumedAt == null
+        ? null
+        : _dateOnly(habit.resumedAt!);
+
+    if (resumedDay == null || resumedDay.isBefore(createdDay)) {
+      return createdDay;
+    }
+
+    return resumedDay;
+  }
+
+  static bool isHabitPausedOnDate(Habit habit, DateTime date) {
+    final DateTime day = _dateOnly(date);
+
+    if (habit.isPaused) {
+      final DateTime pausedDay = habit.pausedAt == null
+          ? _dateOnly(DateTime.now())
+          : _dateOnly(habit.pausedAt!);
+      return !day.isBefore(pausedDay);
+    }
+
+    final DateTime? pausedDay =
+        habit.pausedAt == null ? null : _dateOnly(habit.pausedAt!);
+    final DateTime? resumedDay =
+        habit.resumedAt == null ? null : _dateOnly(habit.resumedAt!);
+
+    if (pausedDay == null || resumedDay == null) {
+      return false;
+    }
+
+    return !day.isBefore(pausedDay) && day.isBefore(resumedDay);
+  }
+
+  static bool canLogHabitForDate(Habit habit, DateTime date) {
+    if (isHabitCurrentlyPaused(habit)) {
+      return false;
+    }
+
+    return !isHabitPausedOnDate(habit, date);
+  }
+
   static int getCurrentStreak(Habit habit, List<HabitLog> logs) {
     final DateTime today = _dateOnly(DateTime.now());
 
@@ -135,10 +182,12 @@ class HabitStatsService {
       List<HabitLog> logs,
       DateTime today,
       ) {
+    final DateTime streakStartBoundary = getEffectiveStreakStartBoundary(habit);
+
     int streak = 0;
     DateTime day = today;
 
-    while (true) {
+    while (!day.isBefore(streakStartBoundary)) {
       final bool hasSuccess = logs.any((log) {
         final DateTime logDate = _dateOnly(log.date);
         return log.habitId == habit.id &&
@@ -164,7 +213,7 @@ class HabitStatsService {
       List<HabitLog> logs,
       DateTime today,
       ) {
-    final DateTime createdDay = _dateOnly(habit.createdAt);
+    final DateTime streakStartBoundary = getEffectiveStreakStartBoundary(habit);
 
     final bool hasFailureToday = logs.any((log) {
       final DateTime logDate = _dateOnly(log.date);
@@ -182,7 +231,7 @@ class HabitStatsService {
     int streak = 0;
     DateTime day = today.subtract(const Duration(days: 1));
 
-    while (!day.isBefore(createdDay)) {
+    while (!day.isBefore(streakStartBoundary)) {
       final bool hasFailure = logs.any((log) {
         final DateTime logDate = _dateOnly(log.date);
         return log.habitId == habit.id &&

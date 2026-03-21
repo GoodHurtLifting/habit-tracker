@@ -47,6 +47,10 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
   }
 
   Future<void> _toggle(DayHabitLogState state) async {
+    if (!state.canLog) {
+      return;
+    }
+
     await widget.overviewService.toggleLogForDay(
       habit: state.habit,
       date: widget.selectedDate,
@@ -65,6 +69,8 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
         return DayHabitLogState(
           habit: existing.habit,
           isLogged: !existing.isLogged,
+          canLog: existing.canLog,
+          isPaused: existing.isPaused,
         );
       }).toList();
     });
@@ -138,16 +144,21 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                   itemBuilder: (context, index) {
                     final state = _states[index];
                     final bool isBuild = state.habit.type == HabitType.build;
+                    final bool isEnabled = canEditDay && state.canLog;
                     final String actionText = state.isLogged
                         ? 'Undo'
-                        : (isBuild ? 'Done' : 'Slip');
+                        : (state.canLog ? (isBuild ? 'Done' : 'Slip') : 'Paused');
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(state.habit.name),
-                      subtitle: Text(isBuild ? 'Build habit' : 'Avoid habit'),
+                      subtitle: Text(
+                        state.isPaused
+                            ? 'Paused'
+                            : (isBuild ? 'Build habit' : 'Avoid habit'),
+                      ),
                       trailing: TextButton(
-                        onPressed: canEditDay ? () => _toggle(state) : null,
+                        onPressed: isEnabled ? () => _toggle(state) : null,
                         child: Text(actionText),
                       ),
                     );
