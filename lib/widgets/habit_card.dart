@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
 import '../models/habit_milestone.dart';
+import '../utils/date_formatter.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
@@ -13,6 +14,7 @@ class HabitCard extends StatelessWidget {
   final HabitMilestone? nextMilestone;
   final int? milestoneDaysRemaining;
   final HabitBenefitMessage? dailyBenefitMessage;
+  final DateTime? lastLoggedDate;
   final bool isExpanded;
   final VoidCallback onPressed;
   final VoidCallback onEdit;
@@ -29,6 +31,7 @@ class HabitCard extends StatelessWidget {
     required this.nextMilestone,
     required this.milestoneDaysRemaining,
     required this.dailyBenefitMessage,
+    required this.lastLoggedDate,
     required this.isExpanded,
     required this.onPressed,
     required this.onEdit,
@@ -51,6 +54,9 @@ class HabitCard extends StatelessWidget {
     final HabitMilestone? upcomingMilestone = nextMilestone;
     final int? daysRemaining = milestoneDaysRemaining;
     final HabitBenefitMessage? perkMessage = dailyBenefitMessage;
+    final String lastLoggedText = lastLoggedDate == null
+        ? 'Not yet'
+        : DateFormatter.weekdayMonthDay(lastLoggedDate!);
 
     final String? milestoneDaysText = daysRemaining == null
         ? null
@@ -200,6 +206,14 @@ class HabitCard extends StatelessWidget {
                                         ),
                                       ),
                                     ],
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Last logged: $lastLoggedText',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
                                     const SizedBox(height: 8),
                                     Text(
                                       todayStatusText,

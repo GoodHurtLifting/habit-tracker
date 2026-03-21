@@ -175,6 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final Map<String, DateTime> lastLoggedDatesByHabit =
+        HabitStatsService.getLastLoggedDatesByHabit(logs);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Habit Tracker'),
@@ -240,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   nextMilestone: nextMilestoneProgress?.milestone,
                   milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
                   dailyBenefitMessage: dailyBenefitMessage,
+                  lastLoggedDate: lastLoggedDatesByHabit[habit.id],
                   isExpanded: _expandedHabitIds.contains(habit.id),
                   onPressed: () => _toggleHabitToday(habit),
                   onEdit: () => _goToEditHabitScreen(habit),

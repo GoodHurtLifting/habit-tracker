@@ -1,6 +1,8 @@
 import '../models/calendar_day_summary.dart';
 import '../models/habit.dart';
 import '../models/habit_log.dart';
+import '../utils/date_formatter.dart';
+import '../utils/date_rules.dart';
 import 'database_service.dart';
 
 class OverviewService {
@@ -8,6 +10,10 @@ class OverviewService {
       : _databaseService = databaseService ?? DatabaseService.instance;
 
   final DatabaseService _databaseService;
+
+  bool canEditDate(DateTime date) {
+    return DateRules.canEditDate(date);
+  }
 
   Future<List<DayHabitLogState>> getDayLogStates(DateTime date) async {
     final DateTime day = DateTime(date.year, date.month, date.day);
@@ -86,15 +92,31 @@ class OverviewService {
 
     final Map<DateTime, CalendarDaySummary> summaries = {};
 
+    final DateTime normalizedMonth = DateFormatter.normalize(monthStart);
+    final int daysInMonth = DateTime(
+      normalizedMonth.year,
+      normalizedMonth.month + 1,
+      0,
+    ).day;
+
+    for (int i = 0; i < daysInMonth; i++) {
+      allDays.add(
+        DateTime(normalizedMonth.year, normalizedMonth.month, i + 1),
+      );
+    }
+
     for (final day in allDays) {
       final List<String> goalHits = (goalsByDay[day] ?? <String>{}).toList()
         ..sort();
       final List<String> slips = (slipsByDay[day] ?? <String>{}).toList()..sort();
+      final bool hasActivity = goalHits.isNotEmpty || slips.isNotEmpty;
 
       summaries[day] = CalendarDaySummary(
         date: day,
         goalHitHabitNames: goalHits,
         slipHabitNames: slips,
+        hasMissedOpportunity:
+            !hasActivity && DateRules.isEligiblePastLoggingDate(day),
       );
     }
 
