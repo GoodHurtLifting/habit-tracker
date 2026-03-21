@@ -71,165 +71,176 @@ class HabitCard extends StatelessWidget {
           curve: Curves.easeInOut,
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: onToggleExpanded,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  habit.name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: onToggleExpanded,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    habit.name,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (isExpanded)
-                                IconButton(
-                                  onPressed: onDelete,
-                                  icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Delete habit',
+                              ],
+                            ),
+                            if (activeMilestone != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                activeMilestone.title,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: accentColor,
                                 ),
+                              ),
                             ],
-                          ),
-                          if (activeMilestone != null) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
-                              activeMilestone.title,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: accentColor,
-                              ),
+                              streakText,
+                              style: const TextStyle(fontSize: 13),
                             ),
-                          ],
-                          const SizedBox(height: 6),
-                          Text(
-                            streakText,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          if (!isExpanded) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              todayStatusText,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isMarkedToday ? accentColor : Colors.grey[700],
+                            if (!isExpanded) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                todayStatusText,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isMarkedToday ? accentColor : Colors.grey[700],
+                                ),
                               ),
-                            ),
-                          ],
-                          if (isExpanded) ...[
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (habit.description != null &&
-                                      habit.description!.trim().isNotEmpty) ...[
-                                    Text(
-                                      habit.description!,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
+                            ],
+                            if (isExpanded) ...[
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (habit.description != null &&
+                                        habit.description!.trim().isNotEmpty) ...[
+                                      Text(
+                                        habit.description!,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                    if (activeMilestone != null) ...[
+                                      Text(
+                                        'What to expect: ${activeMilestone.expectation}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Why it matters: ${activeMilestone.benefit}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                    if (upcomingMilestone != null &&
+                                        milestoneDaysText != null) ...[
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        'Next milestone: ${upcomingMilestone.title}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        milestoneDaysText,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                    if (perkMessage != null) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Today’s perk',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        perkMessage.text,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
                                     const SizedBox(height: 8),
-                                  ],
-                                  if (activeMilestone != null) ...[
                                     Text(
-                                      'What to expect: ${activeMilestone.expectation}',
+                                      todayStatusText,
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[700],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Why it matters: ${activeMilestone.benefit}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                  ],
-                                  if (upcomingMilestone != null &&
-                                      milestoneDaysText != null) ...[
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Next milestone: ${upcomingMilestone.title}',
-                                      style: const TextStyle(
                                         fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      milestoneDaysText,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[700],
+                                        fontWeight: FontWeight.w500,
+                                        color: isMarkedToday ? accentColor : Colors.grey[700],
                                       ),
                                     ),
                                   ],
-                                  if (perkMessage != null) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Today’s perk',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      perkMessage.text,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    todayStatusText,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: isMarkedToday ? accentColor : Colors.grey[700],
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: ElevatedButton(
-                    onPressed: onPressed,
-                    child: Text(buttonText),
+                  const SizedBox(width: 12),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: ElevatedButton(
+                          onPressed: onPressed,
+                          child: Text(buttonText),
+                        ),
+                      ),
+                      if (isExpanded)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: IconButton(
+                            onPressed: onDelete,
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: 'Delete habit',
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
