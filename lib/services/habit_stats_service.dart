@@ -38,6 +38,21 @@ class HabitStatsService {
     }
   }
 
+  static Map<String, DateTime> getLastLoggedDatesByHabit(List<HabitLog> logs) {
+    final Map<String, DateTime> latestByHabitId = {};
+
+    for (final log in logs) {
+      final DateTime logDay = _dateOnly(log.date);
+      final DateTime? existing = latestByHabitId[log.habitId];
+
+      if (existing == null || logDay.isAfter(existing)) {
+        latestByHabitId[log.habitId] = logDay;
+      }
+    }
+
+    return latestByHabitId;
+  }
+
   static NextMilestoneProgress? getNextMilestoneProgress(
       Habit habit,
       int currentStreak,

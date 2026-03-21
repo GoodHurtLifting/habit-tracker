@@ -77,6 +77,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
       widget.selectedDate.month,
       widget.selectedDate.day,
     );
+    final bool canEditDay = widget.overviewService.canEditDate(day);
 
     return SafeArea(
       child: Padding(
@@ -107,6 +108,17 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
               ],
             ),
             const SizedBox(height: 8),
+            if (!canEditDay)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'This date is locked. You can only log days in the current week.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ),
             if (_isLoading)
               const Padding(
                 padding: EdgeInsets.all(12),
@@ -135,7 +147,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                       title: Text(state.habit.name),
                       subtitle: Text(isBuild ? 'Build habit' : 'Avoid habit'),
                       trailing: TextButton(
-                        onPressed: () => _toggle(state),
+                        onPressed: canEditDay ? () => _toggle(state) : null,
                         child: Text(actionText),
                       ),
                     );

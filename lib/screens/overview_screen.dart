@@ -150,15 +150,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         final CalendarDaySummary? summary = _daySummaries[day];
                         final bool isActive = summary?.hasActivity ?? false;
                         final bool isFutureDay = day.isAfter(todayDateOnly);
+                        final bool isEditableDay = _overviewService.canEditDate(day);
+                        final bool isLockedDay = !isFutureDay && !isEditableDay;
+                        final bool showMissedDot =
+                            !isActive && (summary?.hasMissedOpportunity ?? false);
 
                         return InkWell(
-                          onTap: isFutureDay ? null : () => _showDayLogSheet(day),
+                          onTap: isEditableDay ? () => _showDayLogSheet(day) : null,
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey.shade300),
                               borderRadius: BorderRadius.circular(8),
-                              color: isFutureDay
+                              color: isFutureDay || isLockedDay
                                   ? Colors.grey.withValues(alpha: 0.08)
                                   : isActive
                                   ? Colors.blue.withValues(alpha: 0.06)
@@ -178,6 +182,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                     fontWeight: isActive
                                         ? FontWeight.w700
                                         : FontWeight.w400,
+                                    color: isFutureDay || isLockedDay
+                                        ? Colors.grey[500]
+                                        : null,
                                   ),
                                 ),
                                 const Spacer(),
@@ -194,7 +201,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                       if (summary?.hasSlips == true)
                                         _buildDot(Colors.orange),
                                     ],
-                                  ),
+                                  )
+                                else if (showMissedDot)
+                                  _buildDot(Colors.grey.shade400),
                               ],
                             ),
                           ),
