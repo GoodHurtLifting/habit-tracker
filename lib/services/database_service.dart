@@ -11,7 +11,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 4;
+  static const int _databaseVersion = 5;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -49,7 +49,9 @@ class DatabaseService {
             milestone_track_id TEXT,
             is_paused INTEGER NOT NULL DEFAULT 0,
             paused_at TEXT,
-            resumed_at TEXT
+            resumed_at TEXT,
+            is_archived INTEGER NOT NULL DEFAULT 0,
+            archived_at TEXT
           )
         ''');
 
@@ -68,10 +70,10 @@ class DatabaseService {
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           final List<Map<String, Object?>> columns =
-          await db.rawQuery('PRAGMA table_info($habitsTable)');
+              await db.rawQuery('PRAGMA table_info($habitsTable)');
 
           final bool hasMilestoneTrackId = columns.any(
-                (column) => column['name'] == 'milestone_track_id',
+            (column) => column['name'] == 'milestone_track_id',
           );
 
           if (!hasMilestoneTrackId) {
@@ -114,6 +116,30 @@ class DatabaseService {
           if (!hasResumedAt) {
             await db.execute(
               'ALTER TABLE $habitsTable ADD COLUMN resumed_at TEXT',
+            );
+          }
+        }
+
+        if (oldVersion < 5) {
+          final List<Map<String, Object?>> columns =
+              await db.rawQuery('PRAGMA table_info($habitsTable)');
+
+          final bool hasIsArchived = columns.any(
+            (column) => column['name'] == 'is_archived',
+          );
+          final bool hasArchivedAt = columns.any(
+            (column) => column['name'] == 'archived_at',
+          );
+
+          if (!hasIsArchived) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0',
+            );
+          }
+
+          if (!hasArchivedAt) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN archived_at TEXT',
             );
           }
         }
@@ -307,6 +333,21 @@ class DatabaseService {
       {
         'is_paused': 0,
         'resumed_at': day.toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [habitId],
+    );
+  }
+
+  Future<void> archiveHabit(String habitId, DateTime now) async {
+    final db = await database;
+    final DateTime day = _dateOnly(now);
+
+    await db.update(
+      habitsTable,
+      {
+        'is_archived': 1,
+        'archived_at': day.toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [habitId],
