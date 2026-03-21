@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/calendar_day_summary.dart';
 import '../services/overview_service.dart';
+import '../widgets/habit_day_log_sheet.dart';
 
 class OverviewScreen extends StatefulWidget {
   const OverviewScreen({super.key});
@@ -54,50 +55,21 @@ class _OverviewScreenState extends State<OverviewScreen> {
     _loadMonth();
   }
 
-  void _showDayDetails(CalendarDaySummary summary) {
-    showDialog<void>(
+  Future<void> _showDayLogSheet(DateTime day) async {
+    await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
-        return AlertDialog(
-          title: Text(
-            '${summary.date.year}-${summary.date.month.toString().padLeft(2, '0')}-${summary.date.day.toString().padLeft(2, '0')}',
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (summary.hasGoalHits) ...[
-                  const Text(
-                    'Goal hit',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  ...summary.goalHitHabitNames.map(
-                    (habitName) => Text('• $habitName'),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (summary.hasSlips) ...[
-                  const Text(
-                    'Slip',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  ...summary.slipHabitNames.map((habitName) => Text('• $habitName')),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
+        return HabitDayLogSheet(
+          selectedDate: day,
+          overviewService: _overviewService,
         );
       },
     );
+
+    if (mounted) {
+      _loadMonth();
+    }
   }
 
   @override
@@ -106,6 +78,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
         DateUtils.getDaysInMonth(_visibleMonth.year, _visibleMonth.month);
     final DateTime firstOfMonth = DateTime(_visibleMonth.year, _visibleMonth.month, 1);
     final int leadingBlanks = firstOfMonth.weekday % 7;
+    final DateTime today = DateTime.now();
+    final DateTime todayDateOnly = DateTime(today.year, today.month, today.day);
 
     return Scaffold(
       appBar: AppBar(
@@ -175,15 +149,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
                         final CalendarDaySummary? summary = _daySummaries[day];
                         final bool isActive = summary?.hasActivity ?? false;
+                        final bool isFutureDay = day.isAfter(todayDateOnly);
 
                         return InkWell(
-                          onTap: isActive ? () => _showDayDetails(summary!) : null,
+                          onTap: isFutureDay ? null : () => _showDayLogSheet(day),
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey.shade300),
                               borderRadius: BorderRadius.circular(8),
-                              color: isActive
+                              color: isFutureDay
+                                  ? Colors.grey.withValues(alpha: 0.08)
+                                  : isActive
                                   ? Colors.blue.withValues(alpha: 0.06)
                                   : Colors.transparent,
                             ),
