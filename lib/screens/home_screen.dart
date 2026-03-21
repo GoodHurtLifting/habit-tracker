@@ -8,6 +8,7 @@ import '../models/weekly_summary.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
 import '../services/weekly_summary_service.dart';
+import '../utils/date_formatter.dart';
 import '../utils/date_rules.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
@@ -352,17 +353,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'This week\u2019s summary',
+                            'Weekly Summary',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 2),
                           Text(
-                            'Goal hits: ${_mostRecentWeeklySummary!.totalGoalHits}',
+                            'Week of ${DateFormatter.weekRange(_mostRecentWeeklySummary!.weekStartDate, _mostRecentWeeklySummary!.weekEndDate)}',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 12,
+                            ),
                           ),
-                          Text(
-                            'Slips: ${_mostRecentWeeklySummary!.totalSlips}',
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              _buildSummaryStat(
+                                'Goal hits',
+                                _mostRecentWeeklySummary!.totalGoalHits,
+                              ),
+                              _buildSummaryStat(
+                                'Slips',
+                                _mostRecentWeeklySummary!.totalSlips,
+                              ),
+                              _buildSummaryStat(
+                                'Logged days',
+                                _mostRecentWeeklySummary!.totalLoggedDays,
+                              ),
+                              _buildSummaryStat(
+                                'Habits touched',
+                                _mostRecentWeeklySummary!.totalLoggedHabits,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -381,6 +406,38 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _goToAddHabitScreen,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildSummaryStat(String label, int value) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: RichText(
+          text: TextSpan(
+            style: DefaultTextStyle.of(context).style.copyWith(fontSize: 12),
+            children: [
+              TextSpan(
+                text: '$label: ',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              TextSpan(
+                text: '$value',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
