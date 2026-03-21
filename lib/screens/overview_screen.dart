@@ -77,7 +77,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final int daysInMonth =
         DateUtils.getDaysInMonth(_visibleMonth.year, _visibleMonth.month);
     final DateTime firstOfMonth = DateTime(_visibleMonth.year, _visibleMonth.month, 1);
-    final int leadingBlanks = firstOfMonth.weekday % 7;
+    final int leadingBlanks = firstOfMonth.weekday - DateTime.monday;
     final DateTime today = DateTime.now();
     final DateTime todayDateOnly = DateTime(today.year, today.month, today.day);
 
@@ -116,13 +116,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   const SizedBox(height: 8),
                   const Row(
                     children: [
-                      _WeekdayLabel('Sun'),
                       _WeekdayLabel('Mon'),
                       _WeekdayLabel('Tue'),
                       _WeekdayLabel('Wed'),
                       _WeekdayLabel('Thu'),
                       _WeekdayLabel('Fri'),
                       _WeekdayLabel('Sat'),
+                      _WeekdayLabel('Sun'),
                     ],
                   ),
                   const SizedBox(height: 4),

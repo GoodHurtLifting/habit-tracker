@@ -1,48 +1,78 @@
 import 'date_formatter.dart';
 
 class DateRules {
-  static DateTime startOfWeekSunday(DateTime date) {
-    final DateTime day = DateFormatter.normalize(date);
-    final int daysFromSunday = day.weekday % DateTime.daysPerWeek;
-    return day.subtract(Duration(days: daysFromSunday));
+  static const int _weeklyEditCutoffHour = 16;
+
+  static DateTime normalizeDate(DateTime date) {
+    return DateFormatter.normalize(date);
   }
 
-  static DateTime endOfWeekSaturday(DateTime date) {
-    return startOfWeekSunday(date).add(const Duration(days: 6));
+  static DateTime startOfWeekMonday(DateTime date) {
+    final DateTime day = normalizeDate(date);
+    final int daysFromMonday = day.weekday - DateTime.monday;
+    return day.subtract(Duration(days: daysFromMonday));
   }
 
-  static bool isDateInCurrentEditableWeek(
+  static DateTime endOfWeekSunday(DateTime date) {
+    return startOfWeekMonday(date).add(const Duration(days: 6));
+  }
+
+  static DateTime currentWeekCutoff(DateTime now) {
+    final DateTime weekEnd = endOfWeekSunday(now);
+    return DateTime(
+      weekEnd.year,
+      weekEnd.month,
+      weekEnd.day,
+      _weeklyEditCutoffHour,
+    );
+  }
+
+  static ({DateTime start, DateTime end}) getCurrentEditableWeekRange({
+    DateTime? now,
+  }) {
+    final DateTime referenceNow = now ?? DateTime.now();
+    final DateTime weekStart = startOfWeekMonday(referenceNow);
+    final DateTime weekEnd = endOfWeekSunday(referenceNow);
+    return (start: weekStart, end: weekEnd);
+  }
+
+  static bool isDateEditable(
     DateTime date, {
     DateTime? now,
   }) {
     final DateTime referenceNow = now ?? DateTime.now();
-    final DateTime day = DateFormatter.normalize(date);
-    final DateTime weekStart = startOfWeekSunday(referenceNow);
-    final DateTime weekEnd = endOfWeekSaturday(referenceNow);
+    final DateTime day = normalizeDate(date);
+    final DateTime today = normalizeDate(referenceNow);
 
-    return !day.isBefore(weekStart) && !day.isAfter(weekEnd);
+    if (day.isAfter(today)) {
+      return false;
+    }
+
+    if (!referenceNow.isBefore(currentWeekCutoff(referenceNow))) {
+      return false;
+    }
+
+    final ({DateTime start, DateTime end}) editableWeek =
+        getCurrentEditableWeekRange(now: referenceNow);
+
+    return !day.isBefore(editableWeek.start) && !day.isAfter(editableWeek.end);
   }
 
   static bool canEditDate(
     DateTime date, {
     DateTime? now,
   }) {
-    final DateTime referenceNow = DateFormatter.normalize(now ?? DateTime.now());
-    final DateTime day = DateFormatter.normalize(date);
-
-    if (day.isAfter(referenceNow)) {
-      return false;
-    }
-
-    return isDateInCurrentEditableWeek(day, now: referenceNow);
+    return isDateEditable(date, now: now);
   }
 
   static bool isEligiblePastLoggingDate(
     DateTime date, {
     DateTime? now,
   }) {
-    final DateTime referenceNow = DateFormatter.normalize(now ?? DateTime.now());
-    final DateTime day = DateFormatter.normalize(date);
-    return day.isBefore(referenceNow) && canEditDate(day, now: referenceNow);
+    final DateTime referenceNow = now ?? DateTime.now();
+    final DateTime day = normalizeDate(date);
+    final DateTime today = normalizeDate(referenceNow);
+
+    return day.isBefore(today) && isDateEditable(day, now: referenceNow);
   }
 }
