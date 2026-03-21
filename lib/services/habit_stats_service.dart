@@ -15,6 +15,28 @@ class NextMilestoneProgress {
   });
 }
 
+class HabitStatSummary {
+  final Habit habit;
+  final int currentStreak;
+  final int bestStreak;
+  final int totalLoggedDays;
+  final DateTime? lastLoggedDate;
+  final int totalCompletions;
+  final int totalSlips;
+  final bool isPaused;
+
+  const HabitStatSummary({
+    required this.habit,
+    required this.currentStreak,
+    required this.bestStreak,
+    required this.totalLoggedDays,
+    required this.lastLoggedDate,
+    required this.totalCompletions,
+    required this.totalSlips,
+    required this.isPaused,
+  });
+}
+
 class HabitStatsService {
   static bool isHabitCurrentlyPaused(Habit habit) {
     return habit.isPaused;
@@ -83,6 +105,45 @@ class HabitStatsService {
         return log.habitId == habit.id && log.status == HabitLogStatus.failure;
       }).length;
     }
+  }
+
+  static int getBestStreak(Habit habit, List<HabitLog> logs) {
+    if (habit.type == HabitType.build) {
+      return _getBestBuildStreak(logs);
+    } else {
+      return _getBestAvoidStreak(habit, logs);
+    }
+  }
+
+  static HabitStatSummary getHabitStatSummary(Habit habit, List<HabitLog> logs) {
+    final List<HabitLog> habitLogs = logs.where((log) => log.habitId == habit.id).toList();
+    final Map<String, DateTime> lastLoggedDates = getLastLoggedDatesByHabit(habitLogs);
+    final Set<DateTime> loggedDays = habitLogs.map((log) => _dateOnly(log.date)).toSet();
+
+    final int totalCompletions = habitLogs.where((log) {
+      return log.status == HabitLogStatus.success;
+    }).length;
+    final int totalSlips = habitLogs.where((log) {
+      return log.status == HabitLogStatus.failure;
+    }).length;
+
+    return HabitStatSummary(
+      habit: habit,
+      currentStreak: getCurrentStreak(habit, habitLogs),
+      bestStreak: getBestStreak(habit, habitLogs),
+      totalLoggedDays: loggedDays.length,
+      lastLoggedDate: lastLoggedDates[habit.id],
+      totalCompletions: totalCompletions,
+      totalSlips: totalSlips,
+      isPaused: habit.isPaused,
+    );
+  }
+
+  static List<HabitStatSummary> getAllHabitStatSummaries(
+    List<Habit> habits,
+    List<HabitLog> logs,
+  ) {
+    return habits.map((habit) => getHabitStatSummary(habit, logs)).toList();
   }
 
   static Map<String, DateTime> getLastLoggedDatesByHabit(List<HabitLog> logs) {
@@ -250,6 +311,65 @@ class HabitStatsService {
     }
 
     return streak;
+  }
+
+  static int _getBestBuildStreak(List<HabitLog> logs) {
+    final List<DateTime> successDays = logs
+        .where((log) => log.status == HabitLogStatus.success)
+        .map((log) => _dateOnly(log.date))
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (successDays.isEmpty) {
+      return 0;
+    }
+
+    int best = 1;
+    int current = 1;
+
+    for (int i = 1; i < successDays.length; i++) {
+      final int dayGap = successDays[i].difference(successDays[i - 1]).inDays;
+      if (dayGap == 1) {
+        current++;
+      } else {
+        current = 1;
+      }
+
+      if (current > best) {
+        best = current;
+      }
+    }
+
+    return best;
+  }
+
+  static int _getBestAvoidStreak(Habit habit, List<HabitLog> logs) {
+    final DateTime start = _dateOnly(habit.createdAt);
+    final DateTime today = _dateOnly(DateTime.now());
+    final Set<DateTime> failureDays = logs
+        .where((log) => log.status == HabitLogStatus.failure)
+        .map((log) => _dateOnly(log.date))
+        .toSet();
+
+    int best = 0;
+    int current = 0;
+    DateTime day = start;
+
+    while (!day.isAfter(today)) {
+      if (failureDays.contains(day)) {
+        current = 0;
+      } else {
+        current++;
+        if (current > best) {
+          best = current;
+        }
+      }
+
+      day = day.add(const Duration(days: 1));
+    }
+
+    return best;
   }
 
   static DateTime _dateOnly(DateTime date) {
