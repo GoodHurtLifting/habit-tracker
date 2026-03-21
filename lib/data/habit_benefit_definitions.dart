@@ -53,6 +53,46 @@ const List<HabitBenefitMessage> habitBenefitMessages = [
     text: 'A steady walking habit builds trust in yourself.',
   ),
   HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_1',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Twenty minutes can be a calm reset in a busy day.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_2',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Reading time can replace some automatic scrolling.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_3',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'A few pages daily still adds up to real progress.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_4',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Regular reading can help your attention feel more steady.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_5',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Ending the day with reading can make evenings feel more intentional.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_6',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Consistent reading builds confidence through small daily wins.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_7',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Returning to a book each day strengthens your reading rhythm.',
+  ),
+  HabitBenefitMessage(
+    id: 'read_twenty_minutes_benefit_8',
+    trackId: HabitMilestoneTracks.readTwentyMinutes,
+    text: 'Regular reading can gradually expand vocabulary and expression.',
+  ),
+  HabitBenefitMessage(
     id: 'quit_cocaine_benefit_1',
     trackId: HabitMilestoneTracks.quitCocaine,
     text: 'Better sleep can return as your body stabilizes.',
