@@ -242,6 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   dailyBenefitMessage: dailyBenefitMessage,
                   isExpanded: _expandedHabitIds.contains(habit.id),
                   onPressed: () => _toggleHabitToday(habit),
+                  onEdit: () => _goToEditHabitScreen(habit),
                   onDelete: () => _deleteHabit(habit.id),
                   onToggleExpanded: () {
                     setState(() {
