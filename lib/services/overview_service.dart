@@ -37,6 +37,11 @@ class OverviewService {
     required DateTime date,
   }) async {
     final DateTime day = DateTime(date.year, date.month, date.day);
+
+    if (!canEditDate(day)) {
+      return;
+    }
+
     final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
 
     final bool hasLog = dayLogs.any((log) => log.habitId == habit.id);
