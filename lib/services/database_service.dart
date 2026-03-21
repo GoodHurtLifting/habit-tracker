@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/habit.dart';
 import '../models/habit_log.dart';
+import '../models/weekly_summary.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -10,10 +11,11 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 3;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
+  static const String weeklySummariesTable = 'weekly_summaries';
 
   Database? _database;
 
@@ -57,6 +59,8 @@ class DatabaseService {
             FOREIGN KEY (habit_id) REFERENCES $habitsTable(id) ON DELETE CASCADE
           )
         ''');
+
+        await _createWeeklySummariesTable(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -73,8 +77,27 @@ class DatabaseService {
             );
           }
         }
+
+        if (oldVersion < 3) {
+          await _createWeeklySummariesTable(db);
+        }
       },
     );
+  }
+
+  Future<void> _createWeeklySummariesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $weeklySummariesTable (
+        id TEXT PRIMARY KEY,
+        week_start_date TEXT NOT NULL UNIQUE,
+        week_end_date TEXT NOT NULL,
+        generated_at TEXT NOT NULL,
+        total_goal_hits INTEGER NOT NULL,
+        total_slips INTEGER NOT NULL,
+        total_logged_days INTEGER NOT NULL DEFAULT 0,
+        total_logged_habits INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 
   Future<List<Habit>> getHabits() async {
@@ -87,6 +110,96 @@ class DatabaseService {
     final db = await database;
     final rows = await db.query(habitLogsTable, orderBy: 'date DESC');
     return rows.map(HabitLog.fromMap).toList();
+  }
+
+  Future<List<WeeklySummary>> getWeeklySummaries() async {
+    final db = await database;
+    final rows = await db.query(
+      weeklySummariesTable,
+      orderBy: 'week_start_date ASC',
+    );
+    return rows.map(WeeklySummary.fromMap).toList();
+  }
+
+  Future<WeeklySummary?> getWeeklySummaryForWeekStart(DateTime weekStart) async {
+    final db = await database;
+    final DateTime normalizedWeekStart = _dateOnly(weekStart);
+
+    final rows = await db.query(
+      weeklySummariesTable,
+      where: 'week_start_date = ?',
+      whereArgs: [normalizedWeekStart.toIso8601String()],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return WeeklySummary.fromMap(rows.first);
+  }
+
+  Future<WeeklySummary?> getMostRecentWeeklySummary() async {
+    final db = await database;
+    final rows = await db.query(
+      weeklySummariesTable,
+      orderBy: 'week_start_date DESC',
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return WeeklySummary.fromMap(rows.first);
+  }
+
+  Future<void> insertWeeklySummary(WeeklySummary summary) async {
+    final db = await database;
+    await db.insert(
+      weeklySummariesTable,
+      summary.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  Future<DateTime?> getEarliestTrackedWeekStartDate() async {
+    final db = await database;
+
+    final habitRows = await db.query(
+      habitsTable,
+      columns: ['created_at'],
+      orderBy: 'created_at ASC',
+      limit: 1,
+    );
+
+    final logRows = await db.query(
+      habitLogsTable,
+      columns: ['date'],
+      orderBy: 'date ASC',
+      limit: 1,
+    );
+
+    DateTime? earliest;
+
+    if (habitRows.isNotEmpty) {
+      earliest = DateTime.parse(habitRows.first['created_at'] as String);
+    }
+
+    if (logRows.isNotEmpty) {
+      final DateTime earliestLogDate = DateTime.parse(logRows.first['date'] as String);
+      if (earliest == null || earliestLogDate.isBefore(earliest)) {
+        earliest = earliestLogDate;
+      }
+    }
+
+    if (earliest == null) {
+      return null;
+    }
+
+    final DateTime day = _dateOnly(earliest);
+    final int daysFromMonday = day.weekday - DateTime.monday;
+    return day.subtract(Duration(days: daysFromMonday));
   }
 
   Future<List<HabitLog>> getHabitLogsForDateRange(

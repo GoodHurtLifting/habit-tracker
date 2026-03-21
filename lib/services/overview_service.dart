@@ -4,18 +4,34 @@ import '../models/habit_log.dart';
 import '../utils/date_formatter.dart';
 import '../utils/date_rules.dart';
 import 'database_service.dart';
+import 'weekly_summary_service.dart';
 
 class OverviewService {
   OverviewService({DatabaseService? databaseService})
-      : _databaseService = databaseService ?? DatabaseService.instance;
+      : _databaseService = databaseService ?? DatabaseService.instance,
+        _weeklySummaryService = WeeklySummaryService(
+          databaseService: databaseService ?? DatabaseService.instance,
+        );
 
   final DatabaseService _databaseService;
+  final WeeklySummaryService _weeklySummaryService;
+  Set<DateTime> _lockedWeekStarts = <DateTime>{};
 
-  bool canEditDate(DateTime date) {
-    return DateRules.canEditDate(date);
+  Future<void> ensureWeeklySummariesUpToDate() async {
+    await _weeklySummaryService.ensureWeeklySummariesUpToDate();
+    _lockedWeekStarts = await _weeklySummaryService.getLockedWeekStarts();
+  }
+
+  bool canEditDate(DateTime date, {DateTime? now}) {
+    final DateTime day = DateRules.normalizeDate(date);
+    final DateTime weekStart = DateRules.startOfWeekMonday(day);
+    final bool isWeekLocked = _lockedWeekStarts.contains(weekStart);
+    return !isWeekLocked && DateRules.canEditDate(day, now: now);
   }
 
   Future<List<DayHabitLogState>> getDayLogStates(DateTime date) async {
+    await ensureWeeklySummariesUpToDate();
+
     final DateTime day = DateTime(date.year, date.month, date.day);
     final List<Habit> habits = await _databaseService.getHabits();
     final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
@@ -36,6 +52,7 @@ class OverviewService {
     required Habit habit,
     required DateTime date,
   }) async {
+    await ensureWeeklySummariesUpToDate();
     final DateTime day = DateTime(date.year, date.month, date.day);
 
     if (!canEditDate(day)) {
@@ -63,6 +80,7 @@ class OverviewService {
   Future<Map<DateTime, CalendarDaySummary>> getMonthSummaries(
     DateTime month,
   ) async {
+    await ensureWeeklySummariesUpToDate();
     final DateTime monthStart = DateTime(month.year, month.month, 1);
     final DateTime nextMonthStart = DateTime(month.year, month.month + 1, 1);
 

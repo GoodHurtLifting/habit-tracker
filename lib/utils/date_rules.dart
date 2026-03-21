@@ -27,6 +27,27 @@ class DateRules {
     );
   }
 
+  static DateTime weekCutoffSunday4pm(DateTime weekStart) {
+    final DateTime weekEnd = endOfWeekSunday(weekStart);
+    return DateTime(
+      weekEnd.year,
+      weekEnd.month,
+      weekEnd.day,
+      _weeklyEditCutoffHour,
+    );
+  }
+
+  static DateTime? mostRecentEligibleCompletedWeekStart(DateTime now) {
+    final DateTime thisWeekStart = startOfWeekMonday(now);
+    final DateTime thisWeekCutoff = weekCutoffSunday4pm(thisWeekStart);
+
+    if (!now.isBefore(thisWeekCutoff)) {
+      return thisWeekStart;
+    }
+
+    return thisWeekStart.subtract(const Duration(days: 7));
+  }
+
   static ({DateTime start, DateTime end}) getCurrentEditableWeekRange({
     DateTime? now,
   }) {
