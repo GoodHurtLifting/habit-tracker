@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/habit.dart';
 import '../services/overview_service.dart';
+import '../utils/date_formatter.dart';
 
 class HabitDayLogSheet extends StatefulWidget {
   final DateTime selectedDate;
@@ -92,7 +93,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}',
+                    DateFormatter.weekdayMonthDay(day),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
