@@ -9,6 +9,46 @@ class OverviewService {
 
   final DatabaseService _databaseService;
 
+  Future<List<DayHabitLogState>> getDayLogStates(DateTime date) async {
+    final DateTime day = DateTime(date.year, date.month, date.day);
+    final List<Habit> habits = await _databaseService.getHabits();
+    final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
+
+    final Map<String, HabitLog> logsByHabitId = {
+      for (final log in dayLogs) log.habitId: log,
+    };
+
+    return habits.map((habit) {
+      return DayHabitLogState(
+        habit: habit,
+        isLogged: logsByHabitId.containsKey(habit.id),
+      );
+    }).toList();
+  }
+
+  Future<void> toggleLogForDay({
+    required Habit habit,
+    required DateTime date,
+  }) async {
+    final DateTime day = DateTime(date.year, date.month, date.day);
+    final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
+
+    final bool hasLog = dayLogs.any((log) => log.habitId == habit.id);
+
+    if (hasLog) {
+      await _databaseService.deleteHabitLogByDate(habit.id, day);
+      return;
+    }
+
+    await _databaseService.upsertHabitLogForDate(
+      habitId: habit.id,
+      date: day,
+      status: habit.type == HabitType.build
+          ? HabitLogStatus.success
+          : HabitLogStatus.failure,
+    );
+  }
+
   Future<Map<DateTime, CalendarDaySummary>> getMonthSummaries(
     DateTime month,
   ) async {
@@ -60,4 +100,14 @@ class OverviewService {
 
     return summaries;
   }
+}
+
+class DayHabitLogState {
+  final Habit habit;
+  final bool isLogged;
+
+  const DayHabitLogState({
+    required this.habit,
+    required this.isLogged,
+  });
 }

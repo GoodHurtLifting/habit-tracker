@@ -143,16 +143,63 @@ class DatabaseService {
     );
   }
 
+  Future<List<HabitLog>> getHabitLogsForDate(DateTime date) async {
+    final DateTime day = _dateOnly(date);
+    return getHabitLogsForDateRange(
+      day,
+      day.add(const Duration(days: 1)),
+    );
+  }
+
+  Future<void> upsertHabitLogForDate({
+    required String habitId,
+    required DateTime date,
+    required HabitLogStatus status,
+  }) async {
+    final db = await database;
+    final DateTime day = _dateOnly(date);
+
+    await db.transaction((txn) async {
+      final String datePrefix = _datePrefix(day);
+
+      await txn.delete(
+        habitLogsTable,
+        where: 'habit_id = ? AND date LIKE ?',
+        whereArgs: [habitId, '$datePrefix%'],
+      );
+
+      await txn.insert(
+        habitLogsTable,
+        HabitLog(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          habitId: habitId,
+          date: day,
+          status: status,
+        ).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
+  }
+
   Future<void> deleteHabitLogByDate(String habitId, DateTime date) async {
     final db = await database;
-    final datePrefix = '${date.year.toString().padLeft(4, '0')}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
+    final datePrefix = _datePrefix(date);
 
     await db.delete(
       habitLogsTable,
       where: 'habit_id = ? AND date LIKE ?',
       whereArgs: [habitId, '$datePrefix%'],
     );
+  }
+
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  String _datePrefix(DateTime date) {
+    final DateTime day = _dateOnly(date);
+    return '${day.year.toString().padLeft(4, '0')}-'
+        '${day.month.toString().padLeft(2, '0')}-'
+        '${day.day.toString().padLeft(2, '0')}';
   }
 }
