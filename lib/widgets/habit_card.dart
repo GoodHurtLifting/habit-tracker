@@ -16,8 +16,10 @@ class HabitCard extends StatelessWidget {
   final HabitBenefitMessage? dailyBenefitMessage;
   final DateTime? lastLoggedDate;
   final bool isExpanded;
+  final bool canLogToday;
   final VoidCallback onPressed;
   final VoidCallback onEdit;
+  final VoidCallback onPauseResume;
   final VoidCallback onDelete;
   final VoidCallback onToggleExpanded;
 
@@ -33,8 +35,10 @@ class HabitCard extends StatelessWidget {
     required this.dailyBenefitMessage,
     required this.lastLoggedDate,
     required this.isExpanded,
+    required this.canLogToday,
     required this.onPressed,
     required this.onEdit,
+    required this.onPauseResume,
     required this.onDelete,
     required this.onToggleExpanded,
   });
@@ -48,7 +52,11 @@ class HabitCard extends StatelessWidget {
         ? 'Streak: $streakCount days • Total: $totalCount'
         : 'Avoidance Streak: $streakCount days • Slips: $totalCount';
 
-    final String buttonText = isMarkedToday ? 'Undo' : (isBuildHabit ? 'Done' : 'Slip');
+    final String buttonText = !canLogToday
+        ? 'Paused'
+        : isMarkedToday
+            ? 'Undo'
+            : (isBuildHabit ? 'Done' : 'Slip');
 
     final HabitMilestone? activeMilestone = currentMilestone;
     final HabitMilestone? upcomingMilestone = nextMilestone;
@@ -103,6 +111,25 @@ class HabitCard extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                if (habit.isPaused)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      'Paused',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                             if (activeMilestone != null) ...[
@@ -240,7 +267,7 @@ class HabitCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: ElevatedButton(
-                          onPressed: onPressed,
+                          onPressed: canLogToday ? onPressed : null,
                           child: Text(buttonText),
                         ),
                       ),
@@ -254,6 +281,17 @@ class HabitCard extends StatelessWidget {
                                 onPressed: onEdit,
                                 icon: const Icon(Icons.edit_outlined),
                                 tooltip: 'Edit habit',
+                              ),
+                              IconButton(
+                                onPressed: onPauseResume,
+                                icon: Icon(
+                                  habit.isPaused
+                                      ? Icons.play_circle_outline
+                                      : Icons.pause_circle_outline,
+                                ),
+                                tooltip: habit.isPaused
+                                    ? 'Resume habit'
+                                    : 'Pause habit',
                               ),
                               IconButton(
                                 onPressed: onDelete,

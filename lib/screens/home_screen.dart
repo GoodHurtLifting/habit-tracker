@@ -56,6 +56,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _toggleHabitToday(Habit habit) async {
+    if (!HabitStatsService.canLogHabitForDate(habit, DateTime.now())) {
+      return;
+    }
+
     final DateTime today = DateRules.normalizeDate(DateTime.now());
     final DateTime weekStart = DateRules.startOfWeekMonday(today);
     final bool isWeekLocked = await _weeklySummaryService.isWeekLocked(weekStart);
@@ -178,6 +182,46 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadData();
   }
 
+  Future<void> _pauseHabit(Habit habit) async {
+    await _databaseService.pauseHabit(habit.id, DateTime.now());
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      habits = habits.map((existingHabit) {
+        if (existingHabit.id != habit.id) {
+          return existingHabit;
+        }
+        return existingHabit.copyWith(
+          isPaused: true,
+          pausedAt: DateTime.now(),
+        );
+      }).toList();
+    });
+  }
+
+  Future<void> _resumeHabit(Habit habit) async {
+    await _databaseService.resumeHabit(habit.id, DateTime.now());
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      habits = habits.map((existingHabit) {
+        if (existingHabit.id != habit.id) {
+          return existingHabit;
+        }
+        return existingHabit.copyWith(
+          isPaused: false,
+          resumedAt: DateTime.now(),
+        );
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -243,6 +287,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ...habits.map((habit) {
                 final DateTime today = DateTime.now();
+                final bool canLogToday =
+                    HabitStatsService.canLogHabitForDate(habit, today);
 
                 final bool isMarkedToday = logs.any((log) {
                   return log.habitId == habit.id &&
@@ -286,8 +332,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   dailyBenefitMessage: dailyBenefitMessage,
                   lastLoggedDate: lastLoggedDatesByHabit[habit.id],
                   isExpanded: _expandedHabitIds.contains(habit.id),
+                  canLogToday: canLogToday,
                   onPressed: () => _toggleHabitToday(habit),
                   onEdit: () => _goToEditHabitScreen(habit),
+                  onPauseResume: () => habit.isPaused
+                      ? _resumeHabit(habit)
+                      : _pauseHabit(habit),
                   onDelete: () => _deleteHabit(habit.id),
                   onToggleExpanded: () {
                     setState(() {

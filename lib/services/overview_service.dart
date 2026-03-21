@@ -4,6 +4,7 @@ import '../models/habit_log.dart';
 import '../utils/date_formatter.dart';
 import '../utils/date_rules.dart';
 import 'database_service.dart';
+import 'habit_stats_service.dart';
 import 'weekly_summary_service.dart';
 
 class OverviewService {
@@ -44,6 +45,8 @@ class OverviewService {
       return DayHabitLogState(
         habit: habit,
         isLogged: logsByHabitId.containsKey(habit.id),
+        canLog: HabitStatsService.canLogHabitForDate(habit, day),
+        isPaused: HabitStatsService.isHabitPausedOnDate(habit, day),
       );
     }).toList();
   }
@@ -56,6 +59,10 @@ class OverviewService {
     final DateTime day = DateTime(date.year, date.month, date.day);
 
     if (!canEditDate(day)) {
+      return;
+    }
+
+    if (!HabitStatsService.canLogHabitForDate(habit, day)) {
       return;
     }
 
@@ -133,13 +140,18 @@ class OverviewService {
         ..sort();
       final List<String> slips = (slipsByDay[day] ?? <String>{}).toList()..sort();
       final bool hasActivity = goalHits.isNotEmpty || slips.isNotEmpty;
+      final bool hasLoggableHabit = habits.any(
+        (habit) => HabitStatsService.canLogHabitForDate(habit, day),
+      );
 
       summaries[day] = CalendarDaySummary(
         date: day,
         goalHitHabitNames: goalHits,
         slipHabitNames: slips,
         hasMissedOpportunity:
-            !hasActivity && DateRules.isEligiblePastLoggingDate(day),
+            !hasActivity &&
+            hasLoggableHabit &&
+            DateRules.isEligiblePastLoggingDate(day),
       );
     }
 
@@ -150,9 +162,13 @@ class OverviewService {
 class DayHabitLogState {
   final Habit habit;
   final bool isLogged;
+  final bool canLog;
+  final bool isPaused;
 
   const DayHabitLogState({
     required this.habit,
     required this.isLogged,
+    required this.canLog,
+    required this.isPaused,
   });
 }

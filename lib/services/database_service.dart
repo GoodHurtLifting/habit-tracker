@@ -11,7 +11,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 4;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -46,7 +46,10 @@ class DatabaseService {
             description TEXT,
             type TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            milestone_track_id TEXT
+            milestone_track_id TEXT,
+            is_paused INTEGER NOT NULL DEFAULT 0,
+            paused_at TEXT,
+            resumed_at TEXT
           )
         ''');
 
@@ -80,6 +83,39 @@ class DatabaseService {
 
         if (oldVersion < 3) {
           await _createWeeklySummariesTable(db);
+        }
+
+        if (oldVersion < 4) {
+          final List<Map<String, Object?>> columns =
+              await db.rawQuery('PRAGMA table_info($habitsTable)');
+
+          final bool hasIsPaused = columns.any(
+            (column) => column['name'] == 'is_paused',
+          );
+          final bool hasPausedAt = columns.any(
+            (column) => column['name'] == 'paused_at',
+          );
+          final bool hasResumedAt = columns.any(
+            (column) => column['name'] == 'resumed_at',
+          );
+
+          if (!hasIsPaused) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN is_paused INTEGER NOT NULL DEFAULT 0',
+            );
+          }
+
+          if (!hasPausedAt) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN paused_at TEXT',
+            );
+          }
+
+          if (!hasResumedAt) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN resumed_at TEXT',
+            );
+          }
         }
       },
     );
@@ -242,6 +278,36 @@ class DatabaseService {
     final db = await database;
     await db.delete(
       habitsTable,
+      where: 'id = ?',
+      whereArgs: [habitId],
+    );
+  }
+
+  Future<void> pauseHabit(String habitId, DateTime now) async {
+    final db = await database;
+    final DateTime day = _dateOnly(now);
+
+    await db.update(
+      habitsTable,
+      {
+        'is_paused': 1,
+        'paused_at': day.toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [habitId],
+    );
+  }
+
+  Future<void> resumeHabit(String habitId, DateTime now) async {
+    final db = await database;
+    final DateTime day = _dateOnly(now);
+
+    await db.update(
+      habitsTable,
+      {
+        'is_paused': 0,
+        'resumed_at': day.toIso8601String(),
+      },
       where: 'id = ?',
       whereArgs: [habitId],
     );

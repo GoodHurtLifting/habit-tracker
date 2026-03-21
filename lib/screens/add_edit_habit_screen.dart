@@ -60,6 +60,9 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       type: _selectedType,
       createdAt: widget.existingHabit?.createdAt ?? DateTime.now(),
       milestoneTrackId: _selectedMilestoneTrackId,
+      isPaused: widget.existingHabit?.isPaused ?? false,
+      pausedAt: widget.existingHabit?.pausedAt,
+      resumedAt: widget.existingHabit?.resumedAt,
     );
 
     Navigator.pop(context, savedHabit);
