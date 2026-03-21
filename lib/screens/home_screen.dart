@@ -222,6 +222,87 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[700],
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildHabitCards(
+    List<Habit> sectionHabits,
+    Map<String, DateTime> lastLoggedDatesByHabit,
+  ) {
+    return sectionHabits.map((habit) {
+      final DateTime today = DateTime.now();
+      final bool canLogToday = HabitStatsService.canLogHabitForDate(habit, today);
+
+      final bool isMarkedToday = logs.any((log) {
+        return log.habitId == habit.id &&
+            log.date.year == today.year &&
+            log.date.month == today.month &&
+            log.date.day == today.day;
+      });
+
+      final int streakCount = HabitStatsService.getCurrentStreak(
+        habit,
+        logs,
+      );
+      final int totalCount = HabitStatsService.getTotalCount(
+        habit,
+        logs,
+      );
+      final nextMilestoneProgress = HabitStatsService.getNextMilestoneProgress(
+        habit,
+        streakCount,
+      );
+      final HabitMilestone? currentMilestone = HabitStatsService.getCurrentMilestone(
+        habit,
+        streakCount,
+      );
+      final HabitBenefitMessage? dailyBenefitMessage =
+          HabitStatsService.getDailyBenefitMessage(
+        habit,
+        streakCount,
+      );
+
+      return HabitCard(
+        habit: habit,
+        isMarkedToday: isMarkedToday,
+        streakCount: streakCount,
+        totalCount: totalCount,
+        currentMilestone: currentMilestone,
+        nextMilestone: nextMilestoneProgress?.milestone,
+        milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
+        dailyBenefitMessage: dailyBenefitMessage,
+        lastLoggedDate: lastLoggedDatesByHabit[habit.id],
+        isExpanded: _expandedHabitIds.contains(habit.id),
+        canLogToday: canLogToday,
+        onPressed: () => _toggleHabitToday(habit),
+        onEdit: () => _goToEditHabitScreen(habit),
+        onPauseResume: () => habit.isPaused ? _resumeHabit(habit) : _pauseHabit(habit),
+        onDelete: () => _deleteHabit(habit.id),
+        onToggleExpanded: () {
+          setState(() {
+            if (_expandedHabitIds.contains(habit.id)) {
+              _expandedHabitIds.remove(habit.id);
+            } else {
+              _expandedHabitIds.add(habit.id);
+            }
+          });
+        },
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -237,6 +318,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final Map<String, DateTime> lastLoggedDatesByHabit =
         HabitStatsService.getLastLoggedDatesByHabit(logs);
+    final List<Habit> activeHabits = habits.where((habit) => !habit.isPaused).toList();
+    final List<Habit> pausedHabits = habits.where((habit) => habit.isPaused).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -285,71 +368,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ...habits.map((habit) {
-                final DateTime today = DateTime.now();
-                final bool canLogToday =
-                    HabitStatsService.canLogHabitForDate(habit, today);
-
-                final bool isMarkedToday = logs.any((log) {
-                  return log.habitId == habit.id &&
-                      log.date.year == today.year &&
-                      log.date.month == today.month &&
-                      log.date.day == today.day;
-                });
-
-                final int streakCount = HabitStatsService.getCurrentStreak(
-                  habit,
-                  logs,
-                );
-                final int totalCount = HabitStatsService.getTotalCount(
-                  habit,
-                  logs,
-                );
-                final nextMilestoneProgress =
-                    HabitStatsService.getNextMilestoneProgress(
-                  habit,
-                  streakCount,
-                );
-                final HabitMilestone? currentMilestone =
-                    HabitStatsService.getCurrentMilestone(
-                  habit,
-                  streakCount,
-                );
-                final HabitBenefitMessage? dailyBenefitMessage =
-                    HabitStatsService.getDailyBenefitMessage(
-                  habit,
-                  streakCount,
-                );
-
-                return HabitCard(
-                  habit: habit,
-                  isMarkedToday: isMarkedToday,
-                  streakCount: streakCount,
-                  totalCount: totalCount,
-                  currentMilestone: currentMilestone,
-                  nextMilestone: nextMilestoneProgress?.milestone,
-                  milestoneDaysRemaining: nextMilestoneProgress?.daysRemaining,
-                  dailyBenefitMessage: dailyBenefitMessage,
-                  lastLoggedDate: lastLoggedDatesByHabit[habit.id],
-                  isExpanded: _expandedHabitIds.contains(habit.id),
-                  canLogToday: canLogToday,
-                  onPressed: () => _toggleHabitToday(habit),
-                  onEdit: () => _goToEditHabitScreen(habit),
-                  onPauseResume: () => habit.isPaused
-                      ? _resumeHabit(habit)
-                      : _pauseHabit(habit),
-                  onDelete: () => _deleteHabit(habit.id),
-                  onToggleExpanded: () {
-                    setState(() {
-                      if (_expandedHabitIds.contains(habit.id)) {
-                        _expandedHabitIds.remove(habit.id);
-                      } else {
-                        _expandedHabitIds.add(habit.id);
-                      }
-                    });
-                  },
-                );
-                }).toList(),
+                if (activeHabits.isNotEmpty) ...[
+                  _buildSectionHeader('Active Habits'),
+                  ..._buildHabitCards(activeHabits, lastLoggedDatesByHabit),
+                ],
+                if (pausedHabits.isNotEmpty) ...[
+                  _buildSectionHeader('Paused Habits'),
+                  ..._buildHabitCards(pausedHabits, lastLoggedDatesByHabit),
+                ],
               ],
             ),
       floatingActionButton: FloatingActionButton(
