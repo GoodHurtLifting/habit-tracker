@@ -142,7 +142,9 @@ class _StatsCard extends StatelessWidget {
             if (habit.type == HabitType.build)
               Text('Total completions: ${summary.totalCompletions}')
             else ...[
-              Text('Total clean days: ${summary.totalCompletions}'),
+              Text(
+                '${HabitStatsService.getAvoidStatsLabel(habit)}: ${summary.totalCompletions}',
+              ),
               Text('Total slips: ${summary.totalSlips}'),
             ],
           ],
