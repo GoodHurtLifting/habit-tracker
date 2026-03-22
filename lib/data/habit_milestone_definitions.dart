@@ -6,6 +6,7 @@ class HabitMilestoneTracks {
   static const String quitSmoking = 'quit_smoking';
   static const String dailyWalk = 'daily_walk';
   static const String readTwentyMinutes = 'read_twenty_minutes';
+  static const String exerciseThreePerWeek = 'exercise_three_per_week';
   static const String quitCocaine = 'quit_cocaine';
   static const String quitDrinking = 'quit_drinking';
 }
@@ -14,6 +15,7 @@ const Map<String, String> milestoneTrackLabels = {
   HabitMilestoneTracks.quitSmoking: 'Quit Smoking',
   HabitMilestoneTracks.dailyWalk: 'Daily Walk',
   HabitMilestoneTracks.readTwentyMinutes: 'Read 20 Minutes',
+  HabitMilestoneTracks.exerciseThreePerWeek: 'Exercise (3+ times/week)',
   HabitMilestoneTracks.quitCocaine: 'Quit Cocaine',
   HabitMilestoneTracks.quitDrinking: 'Quit Drinking',
 };
@@ -22,6 +24,7 @@ const List<String> milestoneTrackOptions = [
   HabitMilestoneTracks.quitSmoking,
   HabitMilestoneTracks.dailyWalk,
   HabitMilestoneTracks.readTwentyMinutes,
+  HabitMilestoneTracks.exerciseThreePerWeek,
   HabitMilestoneTracks.quitCocaine,
   HabitMilestoneTracks.quitDrinking,
 ];
@@ -217,6 +220,70 @@ const List<HabitMilestone> habitMilestones = [
     benefit: 'A year of reading is a meaningful identity shift and lasting personal investment.',
   ),
   HabitMilestone(
+    id: 'exercise_three_per_week_week_0',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 0,
+    title: 'Start your exercise habit',
+    expectation: 'Pick a realistic plan for three sessions this week and keep the sessions simple.',
+    benefit: 'Showing up once can reset your day and build confidence to keep going.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_1',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 1,
+    title: 'First 3-workout week',
+    expectation: 'You are proving this can fit your real schedule, even without perfect days.',
+    benefit: 'Three sessions in a week can support mood, energy, and stress relief.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_2',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 2,
+    title: 'Two weeks consistent',
+    expectation: 'Protect your workout windows and keep the plan flexible when life gets busy.',
+    benefit: 'Consistency over perfection helps exercise feel normal instead of forced.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_4',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 4,
+    title: 'One month rhythm',
+    expectation: 'You may miss days, but restarting quickly is what keeps momentum alive.',
+    benefit: 'A steady weekly rhythm makes sessions easier to start and finish.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_8',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 8,
+    title: 'Two-month routine',
+    expectation: 'Keep removing friction so workouts stay realistic in changing weeks.',
+    benefit: 'Regular movement can become a reliable stress outlet and energy reset.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_12',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 12,
+    title: 'Three months strong',
+    expectation: 'Lean on your system, not motivation, when your week feels full.',
+    benefit: 'You are shifting toward someone who trains regularly and follows through.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_24',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 24,
+    title: 'Six-month milestone',
+    expectation: 'Protect this habit through travel, stress, and schedule changes.',
+    benefit: 'Long-term consistency supports health and makes restarting easier after interruptions.',
+  ),
+  HabitMilestone(
+    id: 'exercise_three_per_week_week_52',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    targetDays: 52,
+    title: 'One year of weekly consistency',
+    expectation: 'Keep the habit sustainable so it remains part of your normal routine.',
+    benefit: 'A year of regular training reflects a major identity shift and durable confidence.',
+  ),
+  HabitMilestone(
     id: 'quit_cocaine_day_0',
     trackId: HabitMilestoneTracks.quitCocaine,
     targetDays: 0,
@@ -352,4 +419,15 @@ List<HabitMilestone> getMilestonesForTrack(String trackId) {
 
   milestones.sort((a, b) => a.targetDays.compareTo(b.targetDays));
   return milestones;
+}
+
+bool isWeeklyMilestoneTrack(String? trackId) {
+  return trackId == HabitMilestoneTracks.exerciseThreePerWeek;
+}
+
+int? getWeeklyTargetCountForTrack(String? trackId) {
+  if (trackId == HabitMilestoneTracks.exerciseThreePerWeek) {
+    return 3;
+  }
+  return null;
 }

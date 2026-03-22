@@ -4,6 +4,7 @@ import '../models/habit_benefit_message.dart';
 import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
+import '../utils/date_rules.dart';
 
 class NextMilestoneProgress {
   final HabitMilestone milestone;
@@ -38,6 +39,26 @@ class HabitStatSummary {
 }
 
 class HabitStatsService {
+  static bool isWeeklyBuildHabit(Habit habit) {
+    return habit.type == HabitType.build &&
+        isWeeklyMilestoneTrack(habit.milestoneTrackId);
+  }
+
+  static int? getWeeklyTargetCount(Habit habit) {
+    return getWeeklyTargetCountForTrack(habit.milestoneTrackId);
+  }
+
+  static int getCurrentWeekCompletionCount(Habit habit, List<HabitLog> logs) {
+    final int? weeklyTarget = getWeeklyTargetCount(habit);
+    if (weeklyTarget == null) {
+      return 0;
+    }
+
+    final Set<DateTime> successDays = _getHabitSuccessDays(habit, logs);
+    final DateTime weekStart = DateRules.startOfWeekMonday(_dateOnly(DateTime.now()));
+    return _countSuccessDaysInWeek(successDays, weekStart);
+  }
+
   static bool isHabitArchived(Habit habit) {
     return habit.isArchived;
   }
@@ -100,7 +121,9 @@ class HabitStatsService {
   static int getCurrentStreak(Habit habit, List<HabitLog> logs) {
     final DateTime today = _dateOnly(DateTime.now());
 
-    if (habit.type == HabitType.build) {
+    if (isWeeklyBuildHabit(habit)) {
+      return _getWeeklyBuildStreak(habit, logs, today);
+    } else if (habit.type == HabitType.build) {
       return _getBuildStreak(habit, logs, today);
     } else {
       return _getAvoidStreak(habit, logs, today);
@@ -120,7 +143,9 @@ class HabitStatsService {
   }
 
   static int getBestStreak(Habit habit, List<HabitLog> logs) {
-    if (habit.type == HabitType.build) {
+    if (isWeeklyBuildHabit(habit)) {
+      return _getBestWeeklyBuildStreak(habit, logs);
+    } else if (habit.type == HabitType.build) {
       return _getBestBuildStreak(logs);
     } else {
       return _getBestAvoidStreak(habit, logs);
@@ -354,6 +379,89 @@ class HabitStatsService {
     }
 
     return best;
+  }
+
+  static int _getWeeklyBuildStreak(
+    Habit habit,
+    List<HabitLog> logs,
+    DateTime today,
+  ) {
+    final int? weeklyTarget = getWeeklyTargetCount(habit);
+    if (weeklyTarget == null) {
+      return 0;
+    }
+
+    final Set<DateTime> successDays = _getHabitSuccessDays(habit, logs);
+    final DateTime startBoundary =
+        DateRules.startOfWeekMonday(getEffectiveStreakStartBoundary(habit));
+    final DateTime thisWeekStart = DateRules.startOfWeekMonday(today);
+
+    DateTime weekStart = thisWeekStart;
+    if (_countSuccessDaysInWeek(successDays, thisWeekStart) < weeklyTarget) {
+      weekStart = thisWeekStart.subtract(const Duration(days: 7));
+    }
+
+    int streak = 0;
+    while (!weekStart.isBefore(startBoundary)) {
+      final int completions = _countSuccessDaysInWeek(successDays, weekStart);
+      if (completions < weeklyTarget) {
+        break;
+      }
+
+      streak++;
+      weekStart = weekStart.subtract(const Duration(days: 7));
+    }
+
+    return streak;
+  }
+
+  static int _getBestWeeklyBuildStreak(Habit habit, List<HabitLog> logs) {
+    final int? weeklyTarget = getWeeklyTargetCount(habit);
+    if (weeklyTarget == null) {
+      return 0;
+    }
+
+    final Set<DateTime> successDays = _getHabitSuccessDays(habit, logs);
+    final DateTime startWeek =
+        DateRules.startOfWeekMonday(getEffectiveStreakStartBoundary(habit));
+    final DateTime currentWeek = DateRules.startOfWeekMonday(_dateOnly(DateTime.now()));
+
+    int best = 0;
+    int current = 0;
+    DateTime weekStart = startWeek;
+    while (!weekStart.isAfter(currentWeek)) {
+      final int completions = _countSuccessDaysInWeek(successDays, weekStart);
+      if (completions >= weeklyTarget) {
+        current++;
+        if (current > best) {
+          best = current;
+        }
+      } else {
+        current = 0;
+      }
+
+      weekStart = weekStart.add(const Duration(days: 7));
+    }
+
+    return best;
+  }
+
+  static Set<DateTime> _getHabitSuccessDays(Habit habit, List<HabitLog> logs) {
+    return logs
+        .where((log) => log.habitId == habit.id && log.status == HabitLogStatus.success)
+        .map((log) => _dateOnly(log.date))
+        .toSet();
+  }
+
+  static int _countSuccessDaysInWeek(Set<DateTime> successDays, DateTime weekStart) {
+    int count = 0;
+    for (int i = 0; i < 7; i++) {
+      final DateTime day = weekStart.add(Duration(days: i));
+      if (successDays.contains(day)) {
+        count++;
+      }
+    }
+    return count;
   }
 
   static int _getBestAvoidStreak(Habit habit, List<HabitLog> logs) {
