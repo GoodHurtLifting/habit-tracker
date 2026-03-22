@@ -6,6 +6,7 @@ import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
 import '../utils/date_formatter.dart';
+import 'habit_action_button.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
@@ -190,9 +191,10 @@ class HabitCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      child: ElevatedButton(
+                      child: HabitActionButton(
+                        label: buttonText,
                         onPressed: canLogToday ? onPressed : null,
-                        child: Text(buttonText),
+                        variant: HabitActionButtonVariant.primary,
                       ),
                     ),
                   ],
