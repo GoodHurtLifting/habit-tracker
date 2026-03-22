@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../data/habit_milestone_definitions.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
@@ -53,7 +54,8 @@ class HabitCard extends StatelessWidget {
         isBuildHabit && isWeeklyMilestoneTrack(habit.milestoneTrackId);
     final int? weeklyTarget =
     getWeeklyTargetCountForTrack(habit.milestoneTrackId);
-    final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
+    final Color accentColor =
+        isBuildHabit ? AppTheme.buildAccent : AppTheme.avoidAccent;
 
     final bool isLoggedToday = todayLogStatus != null;
     final bool isAvoidSuccessToday = todayLogStatus == HabitLogStatus.success;
@@ -140,7 +142,7 @@ class HabitCard extends StatelessWidget {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.withValues(alpha: 0.12),
+                                        color: AppTheme.metaText.withValues(alpha: 0.14),
                                         borderRadius: BorderRadius.circular(999),
                                       ),
                                       child: Text(
@@ -148,7 +150,7 @@ class HabitCard extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.grey[700],
+                                          color: AppTheme.secondaryText,
                                         ),
                                       ),
                                     ),
@@ -177,9 +179,9 @@ class HabitCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: isLoggedToday
+                                      color: isLoggedToday
                                         ? accentColor
-                                        : Colors.grey[700],
+                                        : AppTheme.secondaryText,
                                   ),
                                 ),
                               ],
@@ -219,7 +221,7 @@ class HabitCard extends StatelessWidget {
                               habit.description!,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -229,7 +231,7 @@ class HabitCard extends StatelessWidget {
                               'What to expect: ${activeMilestone.expectation}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -238,7 +240,7 @@ class HabitCard extends StatelessWidget {
                               'Why it matters: ${activeMilestone.benefit}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                               ),
                             ),
                           ],
@@ -257,7 +259,7 @@ class HabitCard extends StatelessWidget {
                               milestoneDaysText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                               ),
                             ),
                           ],
@@ -268,7 +270,7 @@ class HabitCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -276,7 +278,7 @@ class HabitCard extends StatelessWidget {
                               perkMessage.text,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[700],
+                                color: AppTheme.secondaryText,
                               ),
                             ),
                           ],
@@ -285,7 +287,7 @@ class HabitCard extends StatelessWidget {
                             'Last logged: $lastLoggedText',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[700],
+                              color: AppTheme.secondaryText,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -296,7 +298,7 @@ class HabitCard extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                               color: isLoggedToday
                                   ? accentColor
-                                  : Colors.grey[700],
+                                  : AppTheme.secondaryText,
                             ),
                           ),
                         ],

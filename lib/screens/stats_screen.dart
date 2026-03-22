@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../models/habit.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
@@ -102,7 +103,7 @@ class _StatsCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.12),
+                      color: AppTheme.metaText.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
@@ -110,7 +111,7 @@ class _StatsCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
+                        color: AppTheme.secondaryText,
                       ),
                     ),
                   )
@@ -120,7 +121,7 @@ class _StatsCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
+                      color: AppTheme.secondaryText,
                     ),
                   ),
               ],

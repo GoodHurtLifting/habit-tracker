@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
+
 class AppEmptyState extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -39,7 +41,7 @@ class AppEmptyState extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey[700],
+            color: AppTheme.secondaryText,
           ),
         ),
         if (actionLabel != null) ...[
