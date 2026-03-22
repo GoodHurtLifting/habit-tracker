@@ -306,6 +306,11 @@ class HabitStatsService {
     DateTime day = today;
 
     while (!day.isBefore(streakStartBoundary)) {
+      if (isHabitPausedOnDate(habit, day)) {
+        day = day.subtract(const Duration(days: 1));
+        continue;
+      }
+
       final HabitLogStatus? status = statusByDay[day];
       if (status == HabitLogStatus.success) {
         streak++;
@@ -313,7 +318,16 @@ class HabitStatsService {
         continue;
       }
 
-      if (status == HabitLogStatus.failure || status == null) {
+      final bool isToday = day == today;
+      if (status == HabitLogStatus.failure) {
+        break;
+      }
+
+      if (status == null) {
+        if (isToday) {
+          day = day.subtract(const Duration(days: 1));
+          continue;
+        }
         break;
       }
     }
