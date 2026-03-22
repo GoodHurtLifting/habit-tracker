@@ -128,36 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _archiveHabit(Habit habit) async {
-    await _databaseService.archiveHabit(habit.id, DateTime.now());
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      habits = habits.map((existingHabit) {
-        if (existingHabit.id != habit.id) {
-          return existingHabit;
-        }
-        return existingHabit.copyWith(
-          isArchived: true,
-          archivedAt: DateTime.now(),
-        );
-      }).toList();
-      _expandedHabitIds.remove(habit.id);
-    });
-  }
-
   Future<void> _showDeleteConfirmation(Habit habit) async {
-    final String? action = await showDialog<String>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete habit?'),
           content: const Text(
-            'Deleting this habit permanently removes it and its tracking history.\n\n'
-            'Archive is safer if you just want to hide it from your main list.',
+            'Deleting this habit permanently removes it and its tracking history.',
           ),
           actions: [
             TextButton(
@@ -165,11 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop('archive'),
-              child: const Text('Archive'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop('delete'),
+              onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Delete'),
             ),
           ],
@@ -177,12 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
-    if (action == 'archive') {
-      await _archiveHabit(habit);
-      return;
-    }
-
-    if (action == 'delete') {
+    if (confirmed == true) {
       await _deleteHabit(habit.id);
     }
   }
@@ -359,7 +328,6 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () => _toggleHabitToday(habit),
         onEdit: () => _goToEditHabitScreen(habit),
         onPauseResume: () => habit.isPaused ? _resumeHabit(habit) : _pauseHabit(habit),
-        onArchive: () => _archiveHabit(habit),
         onDelete: () => _showDeleteConfirmation(habit),
         onToggleExpanded: () {
           setState(() {
@@ -389,11 +357,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final Map<String, DateTime> lastLoggedDatesByHabit =
         HabitStatsService.getLastLoggedDatesByHabit(logs);
-    final List<Habit> visibleHabits = HabitStatsService.getVisibleHabits(habits);
-    final List<Habit> activeHabits =
-        visibleHabits.where((habit) => !habit.isPaused).toList();
-    final List<Habit> pausedHabits =
-        visibleHabits.where((habit) => habit.isPaused).toList();
+    final List<Habit> activeHabits = habits.where((habit) => !habit.isPaused).toList();
+    final List<Habit> pausedHabits = habits.where((habit) => habit.isPaused).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -411,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: visibleHabits.isEmpty && _mostRecentWeeklySummary == null
+      body: habits.isEmpty && _mostRecentWeeklySummary == null
           ? const Center(
               child: Text(
                 'No habits yet.\nTap + to add your first habit.',

@@ -21,7 +21,6 @@ class HabitCard extends StatelessWidget {
   final VoidCallback onPressed;
   final VoidCallback onEdit;
   final VoidCallback onPauseResume;
-  final VoidCallback onArchive;
   final VoidCallback onDelete;
   final VoidCallback onToggleExpanded;
 
@@ -41,7 +40,6 @@ class HabitCard extends StatelessWidget {
     required this.onPressed,
     required this.onEdit,
     required this.onPauseResume,
-    required this.onArchive,
     required this.onDelete,
     required this.onToggleExpanded,
   });
@@ -215,6 +213,10 @@ class HabitCard extends StatelessWidget {
                                 color: Colors.grey[700],
                                 fontWeight: FontWeight.w500,
                               ),
+                              IconButton(
+                                onPressed: onDelete,
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete habit',
                             ),
                             const SizedBox(height: 2),
                             Text(

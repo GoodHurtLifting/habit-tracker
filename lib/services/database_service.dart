@@ -339,21 +339,6 @@ class DatabaseService {
     );
   }
 
-  Future<void> archiveHabit(String habitId, DateTime now) async {
-    final db = await database;
-    final DateTime day = _dateOnly(now);
-
-    await db.update(
-      habitsTable,
-      {
-        'is_archived': 1,
-        'archived_at': day.toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [habitId],
-    );
-  }
-
   Future<void> insertHabitLog(HabitLog log) async {
     final db = await database;
     await db.insert(
