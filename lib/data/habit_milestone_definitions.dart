@@ -116,6 +116,14 @@ const List<HabitMilestone> habitMilestones = [
     benefit: 'Expect a mood boost when your are done.',
   ),
   HabitMilestone(
+    id: 'daily_walk_day_1',
+    trackId: HabitMilestoneTracks.dailyWalk,
+    targetDays: 1,
+    title: 'Make walking a habit',
+    expectation: 'You may be a little sore from yesterday but movement is healing.',
+    benefit: 'Expect a mood boost when your are done.',
+  ),
+  HabitMilestone(
     id: 'daily_walk_day_3',
     trackId: HabitMilestoneTracks.dailyWalk,
     targetDays: 3,
