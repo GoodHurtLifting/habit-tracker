@@ -4,6 +4,7 @@ import '../models/habit.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
 import '../utils/date_formatter.dart';
+import '../widgets/app_empty_state.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -47,11 +48,9 @@ class _StatsScreenState extends State<StatsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _summaries.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No habits yet.',
-                    style: TextStyle(fontSize: 16),
-                  ),
+              ? const AppEmptyState(
+                  title: 'No data yet',
+                  subtitle: 'Start logging to see your stats.',
                 )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),

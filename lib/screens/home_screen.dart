@@ -10,6 +10,7 @@ import '../services/habit_stats_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../utils/date_formatter.dart';
 import '../utils/date_rules.dart';
+import '../widgets/app_empty_state.dart';
 import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
 import 'overview_screen.dart';
@@ -394,65 +395,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: habits.isEmpty && _mostRecentWeeklySummary == null
-          ? const Center(
-              child: Text(
-                'No habits yet.\nTap + to add your first habit.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
+      body: habits.isEmpty
+          ? const AppEmptyState(
+              title: 'No habits yet',
+              subtitle: 'Add your first habit to start tracking.',
             )
           : ListView(
               padding: const EdgeInsets.only(bottom: 16),
               children: [
-                if (_mostRecentWeeklySummary != null)
-                  Card(
-                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Weekly Summary',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Week of ${DateFormatter.weekRange(_mostRecentWeeklySummary!.weekStartDate, _mostRecentWeeklySummary!.weekEndDate)}',
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            children: [
-                              _buildSummaryStat(
-                                'Goal hits',
-                                _mostRecentWeeklySummary!.totalGoalHits,
-                              ),
-                              _buildSummaryStat(
-                                'Slips',
-                                _mostRecentWeeklySummary!.totalSlips,
-                              ),
-                              _buildSummaryStat(
-                                'Logged days',
-                                _mostRecentWeeklySummary!.totalLoggedDays,
-                              ),
-                              _buildSummaryStat(
-                                'Habits touched',
-                                _mostRecentWeeklySummary!.totalLoggedHabits,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                _buildWeeklySummarySection(),
+                if (activeHabits.isEmpty && pausedHabits.isNotEmpty)
+                  const AppEmptyState(
+                    title: 'All habits are paused',
+                    subtitle: 'Resume a habit to continue tracking.',
+                    compact: true,
                   ),
                 if (activeHabits.isNotEmpty) ...[
                   _buildSectionHeader('Active Habits'),
@@ -467,6 +423,71 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _goToAddHabitScreen,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildWeeklySummarySection() {
+    if (_mostRecentWeeklySummary == null) {
+      return Card(
+        margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+        child: const Padding(
+          padding: EdgeInsets.all(12),
+          child: AppEmptyState(
+            title: 'No weekly summary yet',
+            subtitle: 'Complete a week to see your progress.',
+            compact: true,
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Weekly Summary',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Week of ${DateFormatter.weekRange(_mostRecentWeeklySummary!.weekStartDate, _mostRecentWeeklySummary!.weekEndDate)}',
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                _buildSummaryStat(
+                  'Goal hits',
+                  _mostRecentWeeklySummary!.totalGoalHits,
+                ),
+                _buildSummaryStat(
+                  'Slips',
+                  _mostRecentWeeklySummary!.totalSlips,
+                ),
+                _buildSummaryStat(
+                  'Logged days',
+                  _mostRecentWeeklySummary!.totalLoggedDays,
+                ),
+                _buildSummaryStat(
+                  'Habits touched',
+                  _mostRecentWeeklySummary!.totalLoggedHabits,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
