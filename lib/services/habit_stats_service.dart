@@ -39,6 +39,30 @@ class HabitStatSummary {
 }
 
 class HabitStatsService {
+  static const Map<String, String> _avoidStatsLabelsByTrackId = {
+    HabitMilestoneTracks.quitSmoking: 'Days without smoking',
+    HabitMilestoneTracks.quitDrinking: 'Days without drinking',
+    HabitMilestoneTracks.quitCocaine: 'Days without cocaine',
+  };
+
+  static String getAvoidStatsLabel(Habit habit) {
+    final String? trackId = habit.milestoneTrackId;
+    if (trackId != null && _avoidStatsLabelsByTrackId.containsKey(trackId)) {
+      return _avoidStatsLabelsByTrackId[trackId]!;
+    }
+
+    final RegExp quitPattern = RegExp(r'^\s*quit\s+(.+?)\s*$', caseSensitive: false);
+    final Match? match = quitPattern.firstMatch(habit.name);
+    if (match != null) {
+      final String target = match.group(1)!.trim().toLowerCase();
+      if (target.isNotEmpty) {
+        return 'Days without $target';
+      }
+    }
+
+    return 'Successful days';
+  }
+
   static bool isWeeklyBuildHabit(Habit habit) {
     return habit.type == HabitType.build &&
         isWeeklyMilestoneTrack(habit.milestoneTrackId);
