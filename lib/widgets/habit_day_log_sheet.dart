@@ -242,32 +242,44 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Column(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            state.habit.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _statusText(state),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[700],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.habit.name,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _statusText(state),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           if (actions.isNotEmpty) ...[
-                            const SizedBox(height: 10),
+                            const SizedBox(width: 12),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
                               children: actions
-                                  .expand((action) => [action, const SizedBox(height: 10)])
-                                  .toList()
-                                ..removeLast(),
+                                  .map(
+                                    (action) => Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: action,
+                                    ),
+                                  )
+                                  .toList(),
                             ),
                           ],
                         ],
