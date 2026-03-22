@@ -4,6 +4,7 @@ import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../services/overview_service.dart';
 import '../utils/date_formatter.dart';
+import 'habit_action_button.dart';
 
 class HabitDayLogSheet extends StatefulWidget {
   final DateTime selectedDate;
@@ -78,6 +79,115 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
     });
   }
 
+  String _statusText(DayHabitLogState state) {
+    final bool isBuild = state.habit.type == HabitType.build;
+    final bool isLogged = state.loggedStatus != null;
+    final bool isAvoidSuccess =
+        !isBuild && state.loggedStatus == HabitLogStatus.success;
+    final bool isAvoidSlip = !isBuild && state.loggedStatus == HabitLogStatus.failure;
+
+    if (state.isPaused) {
+      return 'Paused';
+    }
+
+    if (isBuild) {
+      return isLogged ? 'Completed' : 'Not logged today';
+    }
+
+    if (isAvoidSuccess) {
+      return 'Clean today';
+    }
+
+    if (isAvoidSlip) {
+      return 'Slipped today';
+    }
+
+    return 'Not logged today';
+  }
+
+  List<Widget> _buildActions({
+    required DayHabitLogState state,
+    required bool canEditDay,
+  }) {
+    final bool isBuild = state.habit.type == HabitType.build;
+    final bool isEnabled = canEditDay && state.canLog;
+    final bool isLogged = state.loggedStatus != null;
+    final bool isAvoidSuccess = !isBuild && state.loggedStatus == HabitLogStatus.success;
+    final bool isAvoidSlip = !isBuild && state.loggedStatus == HabitLogStatus.failure;
+
+    if (isBuild) {
+      if (!isLogged) {
+        return [
+          HabitActionButton(
+            label: 'Done',
+            onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
+            isFullWidth: true,
+          ),
+        ];
+      }
+
+      return [
+        HabitActionButton(
+          label: 'Undo',
+          onPressed: isEnabled ? () => _setLog(state, null) : null,
+          variant: HabitActionButtonVariant.secondary,
+          isFullWidth: true,
+        ),
+      ];
+    }
+
+    if (!isLogged) {
+      return [
+        HabitActionButton(
+          label: 'Clean today',
+          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
+          isFullWidth: true,
+        ),
+        HabitActionButton(
+          label: 'Slip',
+          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
+          variant: HabitActionButtonVariant.secondary,
+          isFullWidth: true,
+        ),
+      ];
+    }
+
+    if (isAvoidSuccess) {
+      return [
+        HabitActionButton(
+          label: 'Slip',
+          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
+          variant: HabitActionButtonVariant.secondary,
+          isFullWidth: true,
+        ),
+        HabitActionButton(
+          label: 'Undo',
+          onPressed: isEnabled ? () => _setLog(state, null) : null,
+          variant: HabitActionButtonVariant.secondary,
+          isFullWidth: true,
+        ),
+      ];
+    }
+
+    if (isAvoidSlip) {
+      return [
+        HabitActionButton(
+          label: 'Clean today',
+          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
+          isFullWidth: true,
+        ),
+        HabitActionButton(
+          label: 'Undo',
+          onPressed: isEnabled ? () => _setLog(state, null) : null,
+          variant: HabitActionButtonVariant.secondary,
+          isFullWidth: true,
+        ),
+      ];
+    }
+
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     final DateTime day = DateTime(
@@ -145,71 +255,37 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final state = _states[index];
-                    final bool isBuild = state.habit.type == HabitType.build;
-                    final bool isEnabled = canEditDay && state.canLog;
-                    final bool isLogged = state.loggedStatus != null;
-                    final bool isAvoidSuccess =
-                        !isBuild && state.loggedStatus == HabitLogStatus.success;
-                    final bool isAvoidSlip =
-                        !isBuild && state.loggedStatus == HabitLogStatus.failure;
+                    final actions = _buildActions(state: state, canEditDay: canEditDay);
 
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(state.habit.name),
-                      subtitle: Text(
-                        state.isPaused
-                            ? 'Paused'
-                            : isBuild
-                                ? (isLogged ? 'Completed' : 'Not logged')
-                                : isAvoidSuccess
-                                    ? 'Clean day logged'
-                                    : isAvoidSlip
-                                        ? 'Slip logged'
-                                        : 'Not logged',
-                      ),
-                      trailing: isBuild
-                          ? TextButton(
-                              onPressed: isEnabled
-                                  ? () => _setLog(
-                                        state,
-                                        isLogged ? null : HabitLogStatus.success,
-                                      )
-                                  : null,
-                              child: Text(
-                                isLogged
-                                    ? 'Undo'
-                                    : (state.canLog ? 'Done' : 'Paused'),
-                              ),
-                            )
-                          : Wrap(
-                              spacing: 8,
-                              children: [
-                                TextButton(
-                                  onPressed: isEnabled
-                                      ? () => _setLog(
-                                            state,
-                                            HabitLogStatus.success,
-                                          )
-                                      : null,
-                                  child: const Text('Clean today'),
-                                ),
-                                TextButton(
-                                  onPressed: isEnabled
-                                      ? () => _setLog(
-                                            state,
-                                            HabitLogStatus.failure,
-                                          )
-                                      : null,
-                                  child: const Text('Slip'),
-                                ),
-                                TextButton(
-                                  onPressed: isEnabled && isLogged
-                                      ? () => _setLog(state, null)
-                                      : null,
-                                  child: const Text('Undo'),
-                                ),
-                              ],
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.habit.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _statusText(state),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          if (actions.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            ...actions
+                                .expand((action) => [action, const SizedBox(height: 10)])
+                                .toList()
+                              ..removeLast(),
+                          ],
+                        ],
+                      ),
                     );
                   },
                 ),
