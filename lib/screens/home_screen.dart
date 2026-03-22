@@ -392,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Habit Tracker'),
+        title: const Text('Whatcha Doin?'),
         actions: [
           IconButton(
             onPressed: _goToStatsScreen,

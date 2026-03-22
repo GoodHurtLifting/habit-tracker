@@ -69,11 +69,9 @@ class HabitCard extends StatelessWidget {
 
     final String buttonText = !canLogToday
         ? 'Paused'
-        : (isBuildHabit && isLoggedToday)
-        ? 'Undo'
-        : (isBuildHabit
-        ? (isWeeklyBuild ? 'Log workout' : 'Done')
-        : 'Clean today');
+        : isBuildHabit
+        ? (isLoggedToday ? 'Undo' : 'Done')
+        : (isAvoidSuccessToday ? 'Undo' : 'Made it');
 
     final HabitMilestone? activeMilestone = currentMilestone;
     final HabitMilestone? upcomingMilestone = nextMilestone;
