@@ -49,27 +49,29 @@ class HabitCard extends StatelessWidget {
     final bool isBuildHabit = habit.type == HabitType.build;
     final bool isWeeklyBuild =
         isBuildHabit && isWeeklyMilestoneTrack(habit.milestoneTrackId);
-    final int? weeklyTarget = getWeeklyTargetCountForTrack(habit.milestoneTrackId);
+    final int? weeklyTarget =
+    getWeeklyTargetCountForTrack(habit.milestoneTrackId);
     final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
 
     final String streakText = isBuildHabit
         ? isWeeklyBuild
-            ? 'Streak: $streakCount weeks at ${weeklyTarget ?? 3}+/week • Total workouts: $totalCount'
-            : 'Streak: $streakCount days • Total: $totalCount'
+        ? 'Streak: $streakCount weeks at ${weeklyTarget ?? 3}+/week • Total workouts: $totalCount'
+        : 'Streak: $streakCount days • Total: $totalCount'
         : 'Avoidance Streak: $streakCount days • Slips: $totalCount';
 
     final String buttonText = !canLogToday
         ? 'Paused'
         : isMarkedToday
-            ? 'Undo'
-            : (isBuildHabit
-                ? (isWeeklyBuild ? 'Log workout' : 'Done')
-                : 'Slip');
+        ? 'Undo'
+        : (isBuildHabit
+        ? (isWeeklyBuild ? 'Log workout' : 'Done')
+        : 'Slip');
 
     final HabitMilestone? activeMilestone = currentMilestone;
     final HabitMilestone? upcomingMilestone = nextMilestone;
     final int? daysRemaining = milestoneDaysRemaining;
     final HabitBenefitMessage? perkMessage = dailyBenefitMessage;
+
     final String lastLoggedText = lastLoggedDate == null
         ? 'Not yet'
         : DateFormatter.weekdayMonthDay(lastLoggedDate!);
@@ -77,8 +79,8 @@ class HabitCard extends StatelessWidget {
     final String? milestoneDaysText = daysRemaining == null
         ? null
         : isWeeklyBuild
-            ? (daysRemaining == 1 ? '1 week to go' : '$daysRemaining weeks to go')
-            : (daysRemaining == 1 ? '1 day to go' : '$daysRemaining days to go');
+        ? (daysRemaining == 1 ? '1 week to go' : '$daysRemaining weeks to go')
+        : (daysRemaining == 1 ? '1 day to go' : '$daysRemaining days to go');
 
     final String todayStatusText = isBuildHabit
         ? (isMarkedToday ? 'Logged today' : 'Not logged today')
@@ -165,7 +167,9 @@ class HabitCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: isMarkedToday ? accentColor : Colors.grey[700],
+                                    color: isMarkedToday
+                                        ? accentColor
+                                        : Colors.grey[700],
                                   ),
                                 ),
                               ],
@@ -190,7 +194,11 @@ class HabitCard extends StatelessWidget {
                     onTap: onToggleExpanded,
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 4, right: 4, bottom: 4),
+                      padding: const EdgeInsets.only(
+                        top: 4,
+                        right: 4,
+                        bottom: 4,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -213,10 +221,6 @@ class HabitCard extends StatelessWidget {
                                 color: Colors.grey[700],
                                 fontWeight: FontWeight.w500,
                               ),
-                              IconButton(
-                                onPressed: onDelete,
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Delete habit',
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -279,7 +283,9 @@ class HabitCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: isMarkedToday ? accentColor : Colors.grey[700],
+                              color: isMarkedToday
+                                  ? accentColor
+                                  : Colors.grey[700],
                             ),
                           ),
                         ],
@@ -302,14 +308,8 @@ class HabitCard extends StatelessWidget {
                               ? Icons.play_circle_outline
                               : Icons.pause_circle_outline,
                         ),
-                        tooltip: habit.isPaused
-                            ? 'Resume habit'
-                            : 'Pause habit',
-                      ),
-                      IconButton(
-                        onPressed: onArchive,
-                        icon: const Icon(Icons.archive_outlined),
-                        tooltip: 'Archive habit',
+                        tooltip:
+                        habit.isPaused ? 'Resume habit' : 'Pause habit',
                       ),
                       IconButton(
                         onPressed: onDelete,
