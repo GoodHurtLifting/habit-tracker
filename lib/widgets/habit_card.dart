@@ -21,7 +21,6 @@ class HabitCard extends StatelessWidget {
   final VoidCallback onPressed;
   final VoidCallback onEdit;
   final VoidCallback onPauseResume;
-  final VoidCallback onArchive;
   final VoidCallback onDelete;
   final VoidCallback onToggleExpanded;
 
@@ -41,7 +40,6 @@ class HabitCard extends StatelessWidget {
     required this.onPressed,
     required this.onEdit,
     required this.onPauseResume,
-    required this.onArchive,
     required this.onDelete,
     required this.onToggleExpanded,
   });
@@ -302,11 +300,6 @@ class HabitCard extends StatelessWidget {
                                 tooltip: habit.isPaused
                                     ? 'Resume habit'
                                     : 'Pause habit',
-                              ),
-                              IconButton(
-                                onPressed: onArchive,
-                                icon: const Icon(Icons.archive_outlined),
-                                tooltip: 'Archive habit',
                               ),
                               IconButton(
                                 onPressed: onDelete,
