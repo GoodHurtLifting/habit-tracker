@@ -116,22 +116,12 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
     final bool isAvoidSlip = !isBuild && state.loggedStatus == HabitLogStatus.failure;
 
     if (isBuild) {
-      if (!isLogged) {
-        return [
-          HabitActionButton(
-            label: 'Done',
-            onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
-            isFullWidth: true,
-          ),
-        ];
-      }
-
       return [
         HabitActionButton(
-          label: 'Undo',
-          onPressed: isEnabled ? () => _setLog(state, null) : null,
-          variant: HabitActionButtonVariant.secondary,
-          isFullWidth: true,
+          label: isLogged ? 'Undo' : 'Done',
+          onPressed: isEnabled
+              ? () => _setLog(state, isLogged ? null : HabitLogStatus.success)
+              : null,
         ),
       ];
     }
@@ -141,13 +131,11 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
         HabitActionButton(
           label: 'Clean today',
           onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
-          isFullWidth: true,
         ),
         HabitActionButton(
           label: 'Slip',
           onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
           variant: HabitActionButtonVariant.secondary,
-          isFullWidth: true,
         ),
       ];
     }
@@ -155,16 +143,13 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
     if (isAvoidSuccess) {
       return [
         HabitActionButton(
+          label: 'Undo',
+          onPressed: isEnabled ? () => _setLog(state, null) : null,
+        ),
+        HabitActionButton(
           label: 'Slip',
           onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
           variant: HabitActionButtonVariant.secondary,
-          isFullWidth: true,
-        ),
-        HabitActionButton(
-          label: 'Undo',
-          onPressed: isEnabled ? () => _setLog(state, null) : null,
-          variant: HabitActionButtonVariant.secondary,
-          isFullWidth: true,
         ),
       ];
     }
@@ -174,13 +159,11 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
         HabitActionButton(
           label: 'Clean today',
           onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
-          isFullWidth: true,
         ),
         HabitActionButton(
           label: 'Undo',
           onPressed: isEnabled ? () => _setLog(state, null) : null,
           variant: HabitActionButtonVariant.secondary,
-          isFullWidth: true,
         ),
       ];
     }
@@ -279,10 +262,13 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                           ),
                           if (actions.isNotEmpty) ...[
                             const SizedBox(height: 10),
-                            ...actions
-                                .expand((action) => [action, const SizedBox(height: 10)])
-                                .toList()
-                              ..removeLast(),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: actions
+                                  .expand((action) => [action, const SizedBox(height: 10)])
+                                  .toList()
+                                ..removeLast(),
+                            ),
                           ],
                         ],
                       ),
