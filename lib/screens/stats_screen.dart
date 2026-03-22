@@ -139,11 +139,12 @@ class _StatsCard extends StatelessWidget {
             ),
             Text('Total logged days: ${summary.totalLoggedDays}'),
             Text('Last logged: $lastLoggedText'),
-            Text(
-              habit.type == HabitType.build
-                  ? 'Total completions: ${summary.totalCompletions}'
-                  : 'Total slips: ${summary.totalSlips}',
-            ),
+            if (habit.type == HabitType.build)
+              Text('Total completions: ${summary.totalCompletions}')
+            else ...[
+              Text('Total clean days: ${summary.totalCompletions}'),
+              Text('Total slips: ${summary.totalSlips}'),
+            ],
           ],
         ),
       ),

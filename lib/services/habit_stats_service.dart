@@ -300,39 +300,22 @@ class HabitStatsService {
       DateTime today,
       ) {
     final DateTime streakStartBoundary = getEffectiveStreakStartBoundary(habit);
-
-    final bool hasFailureToday = logs.any((log) {
-      final DateTime logDate = _dateOnly(log.date);
-      return log.habitId == habit.id &&
-          log.status == HabitLogStatus.failure &&
-          logDate.year == today.year &&
-          logDate.month == today.month &&
-          logDate.day == today.day;
-    });
-
-    if (hasFailureToday) {
-      return 0;
-    }
-
+    final Map<DateTime, HabitLogStatus> statusByDay =
+        _getLatestStatusByDay(habit, logs);
     int streak = 0;
-    DateTime day = today.subtract(const Duration(days: 1));
+    DateTime day = today;
 
     while (!day.isBefore(streakStartBoundary)) {
-      final bool hasFailure = logs.any((log) {
-        final DateTime logDate = _dateOnly(log.date);
-        return log.habitId == habit.id &&
-            log.status == HabitLogStatus.failure &&
-            logDate.year == day.year &&
-            logDate.month == day.month &&
-            logDate.day == day.day;
-      });
-
-      if (hasFailure) {
-        break;
+      final HabitLogStatus? status = statusByDay[day];
+      if (status == HabitLogStatus.success) {
+        streak++;
+        day = day.subtract(const Duration(days: 1));
+        continue;
       }
 
-      streak++;
-      day = day.subtract(const Duration(days: 1));
+      if (status == HabitLogStatus.failure || status == null) {
+        break;
+      }
     }
 
     return streak;
@@ -453,25 +436,26 @@ class HabitStatsService {
   }
 
   static int _getBestAvoidStreak(Habit habit, List<HabitLog> logs) {
-    final DateTime start = _dateOnly(habit.createdAt);
+    final DateTime start = getEffectiveStreakStartBoundary(habit);
     final DateTime today = _dateOnly(DateTime.now());
-    final Set<DateTime> failureDays = logs
-        .where((log) => log.status == HabitLogStatus.failure)
-        .map((log) => _dateOnly(log.date))
-        .toSet();
+    final Map<DateTime, HabitLogStatus> statusByDay = _getLatestStatusByDay(
+      habit,
+      logs,
+    );
 
     int best = 0;
     int current = 0;
     DateTime day = start;
 
     while (!day.isAfter(today)) {
-      if (failureDays.contains(day)) {
-        current = 0;
-      } else {
+      final HabitLogStatus? status = statusByDay[day];
+      if (status == HabitLogStatus.success) {
         current++;
         if (current > best) {
           best = current;
         }
+      } else {
+        current = 0;
       }
 
       day = day.add(const Duration(days: 1));
@@ -482,5 +466,19 @@ class HabitStatsService {
 
   static DateTime _dateOnly(DateTime date) {
     return DateTime(date.year, date.month, date.day);
+  }
+
+  static Map<DateTime, HabitLogStatus> _getLatestStatusByDay(
+    Habit habit,
+    List<HabitLog> logs,
+  ) {
+    final Map<DateTime, HabitLogStatus> statusByDay = <DateTime, HabitLogStatus>{};
+
+    for (final HabitLog log in logs.where((log) => log.habitId == habit.id)) {
+      final DateTime day = _dateOnly(log.date);
+      statusByDay[day] = log.status;
+    }
+
+    return statusByDay;
   }
 }

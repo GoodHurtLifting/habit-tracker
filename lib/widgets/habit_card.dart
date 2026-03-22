@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import '../data/habit_milestone_definitions.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
+import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
 import '../utils/date_formatter.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
-  final bool isMarkedToday;
+  final HabitLogStatus? todayLogStatus;
   final int streakCount;
   final int totalCount;
   final HabitMilestone? currentMilestone;
@@ -27,7 +28,7 @@ class HabitCard extends StatelessWidget {
   const HabitCard({
     super.key,
     required this.habit,
-    required this.isMarkedToday,
+    required this.todayLogStatus,
     required this.streakCount,
     required this.totalCount,
     required this.currentMilestone,
@@ -53,6 +54,10 @@ class HabitCard extends StatelessWidget {
     getWeeklyTargetCountForTrack(habit.milestoneTrackId);
     final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
 
+    final bool isLoggedToday = todayLogStatus != null;
+    final bool isAvoidSuccessToday = todayLogStatus == HabitLogStatus.success;
+    final bool isAvoidSlipToday = todayLogStatus == HabitLogStatus.failure;
+
     final String streakText = isBuildHabit
         ? isWeeklyBuild
         ? 'Streak: $streakCount weeks at ${weeklyTarget ?? 3}+/week • Total workouts: $totalCount'
@@ -61,11 +66,11 @@ class HabitCard extends StatelessWidget {
 
     final String buttonText = !canLogToday
         ? 'Paused'
-        : isMarkedToday
+        : (isBuildHabit && isLoggedToday)
         ? 'Undo'
         : (isBuildHabit
         ? (isWeeklyBuild ? 'Log workout' : 'Done')
-        : 'Slip');
+        : 'Clean today');
 
     final HabitMilestone? activeMilestone = currentMilestone;
     final HabitMilestone? upcomingMilestone = nextMilestone;
@@ -83,8 +88,12 @@ class HabitCard extends StatelessWidget {
         : (daysRemaining == 1 ? '1 day to go' : '$daysRemaining days to go');
 
     final String todayStatusText = isBuildHabit
-        ? (isMarkedToday ? 'Logged today' : 'Not logged today')
-        : (isMarkedToday ? 'Slipped today' : 'No slip today');
+        ? (isLoggedToday ? 'Logged today' : 'Not logged today')
+        : (isAvoidSuccessToday
+            ? 'Clean day logged'
+            : isAvoidSlipToday
+                ? 'Slipped today'
+                : 'Not logged today');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -167,7 +176,7 @@ class HabitCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: isMarkedToday
+                                    color: isLoggedToday
                                         ? accentColor
                                         : Colors.grey[700],
                                   ),
@@ -283,7 +292,7 @@ class HabitCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: isMarkedToday
+                              color: isLoggedToday
                                   ? accentColor
                                   : Colors.grey[700],
                             ),
