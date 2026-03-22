@@ -94,7 +94,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
       return isLogged ? 'Completed' : 'Not logged today';
     }
 
-    return isAvoidSuccess ? 'Clean today' : 'Not logged today';
+    return isAvoidSuccess ? 'Made it' : 'Not logged today';
   }
 
   List<Widget> _buildActions({
@@ -120,7 +120,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
 
     return [
       HabitActionButton(
-        label: isCleanLogged ? 'Undo' : 'Clean today',
+        label: isCleanLogged ? 'Undo' : 'Made it',
         onPressed: isEnabled
             ? () => _setLog(
           state,
