@@ -1,8 +1,6 @@
 import 'date_formatter.dart';
 
 class DateRules {
-  static const int _weeklyEditCutoffHour = 16;
-
   static DateTime normalizeDate(DateTime date) {
     return DateFormatter.normalize(date);
   }
@@ -17,34 +15,9 @@ class DateRules {
     return startOfWeekMonday(date).add(const Duration(days: 6));
   }
 
-  static DateTime currentWeekCutoff(DateTime now) {
-    final DateTime weekEnd = endOfWeekSunday(now);
-    return DateTime(
-      weekEnd.year,
-      weekEnd.month,
-      weekEnd.day,
-      _weeklyEditCutoffHour,
-    );
-  }
-
-  static DateTime weekCutoffSunday4pm(DateTime weekStart) {
-    final DateTime weekEnd = endOfWeekSunday(weekStart);
-    return DateTime(
-      weekEnd.year,
-      weekEnd.month,
-      weekEnd.day,
-      _weeklyEditCutoffHour,
-    );
-  }
-
   static DateTime? mostRecentEligibleCompletedWeekStart(DateTime now) {
     final DateTime thisWeekStart = startOfWeekMonday(now);
-    final DateTime thisWeekCutoff = weekCutoffSunday4pm(thisWeekStart);
-
-    if (!now.isBefore(thisWeekCutoff)) {
-      return thisWeekStart;
-    }
-
+    // A week is only considered complete after local Monday begins.
     return thisWeekStart.subtract(const Duration(days: 7));
   }
 
@@ -66,10 +39,6 @@ class DateRules {
     final DateTime today = normalizeDate(referenceNow);
 
     if (day.isAfter(today)) {
-      return false;
-    }
-
-    if (!referenceNow.isBefore(currentWeekCutoff(referenceNow))) {
       return false;
     }
 
