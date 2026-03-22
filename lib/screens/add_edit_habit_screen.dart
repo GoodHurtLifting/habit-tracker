@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
 import '../data/habit_milestone_definitions.dart';
+import '../data/predefined_habit_options.dart';
 import '../models/habit.dart';
 
 class AddEditHabitScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
 
   HabitType _selectedType = HabitType.build;
   String? _selectedMilestoneTrackId;
+  String? _selectedPredefinedHabitId;
   bool get _isEditMode => widget.existingHabit != null;
 
   @override
@@ -42,14 +44,32 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   }
 
   void _saveHabit() {
-    final String name = _nameController.text.trim();
     final String description = _descriptionController.text.trim();
 
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a habit name.')),
+    String name = _nameController.text.trim();
+
+    if (_isEditMode) {
+      if (name.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a habit name.')),
+        );
+        return;
+      }
+    } else {
+      final selectedOption = getPredefinedHabitOptionById(
+        _selectedPredefinedHabitId,
       );
-      return;
+
+      if (selectedOption == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please choose a habit.')),
+        );
+        return;
+      }
+
+      name = selectedOption.displayName;
+      _selectedType = selectedOption.type;
+      _selectedMilestoneTrackId = selectedOption.milestoneTrackId;
     }
 
     final Habit savedHabit = Habit(
@@ -77,44 +97,33 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Habit Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<HabitType>(
-              value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'Habit Type',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: HabitType.build, child: Text('Build')),
-                DropdownMenuItem(value: HabitType.avoid, child: Text('Avoid')),
-              ],
-              onChanged: _isEditMode
-                  ? null
-                  : (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedType = value;
-                  });
-                }
-              },
-            ),
             if (_isEditMode) ...[
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Habit Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<HabitType>(
+                value: _selectedType,
+                decoration: const InputDecoration(
+                  labelText: 'Habit Type',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: HabitType.build,
+                    child: Text('Build'),
+                  ),
+                  DropdownMenuItem(
+                    value: HabitType.avoid,
+                    child: Text('Avoid'),
+                  ),
+                ],
+                onChanged: null,
+              ),
               const SizedBox(height: 8),
               const Align(
                 alignment: Alignment.centerLeft,
@@ -123,31 +132,61 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                   style: TextStyle(fontSize: 12, color: AppTheme.metaText),
                 ),
               ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String?>(
+                initialValue: _selectedMilestoneTrackId,
+                decoration: const InputDecoration(
+                  labelText: 'Milestone Track',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('None'),
+                  ),
+                  ...milestoneTrackOptions.map(
+                    (trackId) => DropdownMenuItem<String?>(
+                      value: trackId,
+                      child: Text(getMilestoneTrackLabel(trackId)),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedMilestoneTrackId = value;
+                  });
+                },
+              ),
+            ] else ...[
+              DropdownButtonFormField<String>(
+                initialValue: _selectedPredefinedHabitId,
+                decoration: const InputDecoration(
+                  labelText: 'Choose a habit',
+                  border: OutlineInputBorder(),
+                ),
+                items: predefinedHabitOptions
+                    .map(
+                      (option) => DropdownMenuItem<String>(
+                        value: option.id,
+                        child: Text(option.displayName),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPredefinedHabitId = value;
+                  });
+                },
+              ),
             ],
             const SizedBox(height: 16),
-            DropdownButtonFormField<String?>(
-              initialValue: _selectedMilestoneTrackId,
+            TextField(
+              controller: _descriptionController,
               decoration: const InputDecoration(
-                labelText: 'Milestone Track',
+                labelText: 'Description (optional)',
                 border: OutlineInputBorder(),
               ),
-              items: [
-                const DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text('None'),
-                ),
-                ...milestoneTrackOptions.map(
-                      (trackId) => DropdownMenuItem<String?>(
-                    value: trackId,
-                    child: Text(getMilestoneTrackLabel(trackId)),
-                  ),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedMilestoneTrackId = value;
-                });
-              },
+              maxLines: 2,
             ),
             const SizedBox(height: 24),
             SizedBox(
