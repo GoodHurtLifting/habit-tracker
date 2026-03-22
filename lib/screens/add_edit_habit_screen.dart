@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../data/habit_milestone_definitions.dart';
 import '../models/habit.dart';
 
@@ -119,7 +120,7 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Habit type cannot be changed after creation.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                  style: TextStyle(fontSize: 12, color: AppTheme.metaText),
                 ),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../models/calendar_day_summary.dart';
 import '../services/overview_service.dart';
 import '../widgets/habit_day_log_sheet.dart';
@@ -160,12 +161,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(color: AppTheme.divider),
                               borderRadius: BorderRadius.circular(8),
                               color: isFutureDay || isLockedDay
-                                  ? Colors.grey.withValues(alpha: 0.08)
+                                  ? AppTheme.metaText.withValues(alpha: 0.14)
                                   : isActive
-                                  ? Colors.blue.withValues(alpha: 0.06)
+                                  ? AppTheme.buildAccent.withValues(alpha: 0.14)
                                   : Colors.transparent,
                             ),
                             padding: const EdgeInsets.symmetric(
@@ -183,7 +184,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                         ? FontWeight.w700
                                         : FontWeight.w400,
                                     color: isFutureDay || isLockedDay
-                                        ? Colors.grey[500]
+                                        ? AppTheme.metaText
                                         : null,
                                   ),
                                 ),
@@ -194,16 +195,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       if (summary?.hasGoalHits == true)
-                                        _buildDot(Colors.blue),
+                                        _buildDot(AppTheme.buildAccent),
                                       if (summary?.hasGoalHits == true &&
                                           summary?.hasSlips == true)
                                         const SizedBox(width: 6),
                                       if (summary?.hasSlips == true)
-                                        _buildDot(Colors.orange),
+                                        _buildDot(AppTheme.avoidAccent),
                                     ],
                                   )
                                 else if (showMissedDot)
-                                  _buildDot(Colors.grey.shade400),
+                                  _buildDot(AppTheme.metaText),
                               ],
                             ),
                           ),
@@ -261,7 +262,7 @@ class _WeekdayLabel extends StatelessWidget {
           text,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
+            color: AppTheme.secondaryText,
           ),
         ),
       ),

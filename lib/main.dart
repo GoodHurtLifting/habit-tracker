@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_theme.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -13,9 +14,7 @@ class HabitTrackerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Habit Tracker',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
+      theme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );
   }

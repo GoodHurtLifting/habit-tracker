@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../services/overview_service.dart';
@@ -175,7 +176,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                   'This date is locked. You can only log days in the current week.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[700],
+                    color: AppTheme.secondaryText,
                   ),
                 ),
               ),
@@ -220,7 +221,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                                   _statusText(state),
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.grey[700],
+                                    color: AppTheme.secondaryText,
                                   ),
                                 ),
                               ],

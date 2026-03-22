@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
@@ -289,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.grey[700],
+          color: AppTheme.secondaryText,
           letterSpacing: 0.3,
         ),
       ),
@@ -474,7 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Week of ${DateFormatter.weekRange(_mostRecentWeeklySummary!.weekStartDate, _mostRecentWeeklySummary!.weekEndDate)}',
               style: TextStyle(
-                color: Colors.grey[700],
+                color: AppTheme.secondaryText,
                 fontSize: 12,
               ),
             ),
@@ -510,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSummaryStat(String label, int value) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppTheme.metaText.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
@@ -522,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
               TextSpan(
                 text: '$label: ',
                 style: TextStyle(
-                  color: Colors.grey[700],
+                  color: AppTheme.secondaryText,
                   fontWeight: FontWeight.w500,
                 ),
               ),
