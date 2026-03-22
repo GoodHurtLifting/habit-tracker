@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/habit_milestone_definitions.dart';
 import '../models/habit.dart';
 import '../models/habit_benefit_message.dart';
 import '../models/habit_milestone.dart';
@@ -48,17 +49,24 @@ class HabitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isBuildHabit = habit.type == HabitType.build;
+    final bool isWeeklyBuild =
+        isBuildHabit && isWeeklyMilestoneTrack(habit.milestoneTrackId);
+    final int? weeklyTarget = getWeeklyTargetCountForTrack(habit.milestoneTrackId);
     final Color accentColor = isBuildHabit ? Colors.blue : Colors.orange;
 
     final String streakText = isBuildHabit
-        ? 'Streak: $streakCount days • Total: $totalCount'
+        ? isWeeklyBuild
+            ? 'Streak: $streakCount weeks at ${weeklyTarget ?? 3}+/week • Total workouts: $totalCount'
+            : 'Streak: $streakCount days • Total: $totalCount'
         : 'Avoidance Streak: $streakCount days • Slips: $totalCount';
 
     final String buttonText = !canLogToday
         ? 'Paused'
         : isMarkedToday
             ? 'Undo'
-            : (isBuildHabit ? 'Done' : 'Slip');
+            : (isBuildHabit
+                ? (isWeeklyBuild ? 'Log workout' : 'Done')
+                : 'Slip');
 
     final HabitMilestone? activeMilestone = currentMilestone;
     final HabitMilestone? upcomingMilestone = nextMilestone;
@@ -70,12 +78,12 @@ class HabitCard extends StatelessWidget {
 
     final String? milestoneDaysText = daysRemaining == null
         ? null
-        : daysRemaining == 1
-            ? '1 day to go'
-            : '$daysRemaining days to go';
+        : isWeeklyBuild
+            ? (daysRemaining == 1 ? '1 week to go' : '$daysRemaining weeks to go')
+            : (daysRemaining == 1 ? '1 day to go' : '$daysRemaining days to go');
 
     final String todayStatusText = isBuildHabit
-        ? (isMarkedToday ? 'Completed today' : 'Not completed today')
+        ? (isMarkedToday ? 'Logged today' : 'Not logged today')
         : (isMarkedToday ? 'Slipped today' : 'No slip today');
 
     return Card(

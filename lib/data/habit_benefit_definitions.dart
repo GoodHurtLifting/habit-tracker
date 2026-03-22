@@ -93,6 +93,41 @@ const List<HabitBenefitMessage> habitBenefitMessages = [
     text: 'Regular reading can gradually expand vocabulary and expression.',
   ),
   HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_1',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'One workout can be enough to reset your day.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_2',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'Three sessions this week beats waiting for a perfect plan.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_3',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'Less guilt, more momentum comes from showing up again.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_4',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'Regular movement can be a practical outlet for stress.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_5',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'Exercise feels easier once it is on the calendar, not negotiated daily.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_6',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'Confidence grows when you keep your weekly commitments to yourself.',
+  ),
+  HabitBenefitMessage(
+    id: 'exercise_three_per_week_benefit_7',
+    trackId: HabitMilestoneTracks.exerciseThreePerWeek,
+    text: 'A steady routine makes it easier to restart after missed days.',
+  ),
+  HabitBenefitMessage(
     id: 'quit_cocaine_benefit_1',
     trackId: HabitMilestoneTracks.quitCocaine,
     text: 'Better sleep can return as your body stabilizes.',

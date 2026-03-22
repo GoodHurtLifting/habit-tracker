@@ -73,6 +73,7 @@ class _StatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Habit habit = summary.habit;
+    final bool isWeeklyBuild = HabitStatsService.isWeeklyBuildHabit(habit);
     final String lastLoggedText = summary.lastLoggedDate == null
         ? 'Not yet'
         : DateFormatter.weekdayMonthDay(summary.lastLoggedDate!);
@@ -126,8 +127,16 @@ class _StatsCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text('Current streak: ${summary.currentStreak} days'),
-            Text('Best streak: ${summary.bestStreak} days'),
+            Text(
+              isWeeklyBuild
+                  ? 'Current streak: ${summary.currentStreak} weeks meeting goal'
+                  : 'Current streak: ${summary.currentStreak} days',
+            ),
+            Text(
+              isWeeklyBuild
+                  ? 'Best streak: ${summary.bestStreak} weeks meeting goal'
+                  : 'Best streak: ${summary.bestStreak} days',
+            ),
             Text('Total logged days: ${summary.totalLoggedDays}'),
             Text('Last logged: $lastLoggedText'),
             Text(
