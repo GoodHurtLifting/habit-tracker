@@ -70,14 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final bool hasLogForToday = logs.any((log) {
-      return log.habitId == habit.id &&
-          log.date.year == today.year &&
-          log.date.month == today.month &&
-          log.date.day == today.day;
-    });
+    final HabitLog? todayLog = _getHabitLogForDay(habit.id, today);
 
-    if (hasLogForToday) {
+    final bool shouldUndo = habit.type == HabitType.build
+        ? todayLog != null
+        : todayLog?.status == HabitLogStatus.success;
+
+    if (shouldUndo) {
       await _databaseService.deleteHabitLogByDate(habit.id, today);
 
       if (!mounted) {
@@ -97,19 +96,29 @@ class _HomeScreenState extends State<HomeScreen> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         habitId: habit.id,
         date: today,
-        status: habit.type == HabitType.build
-            ? HabitLogStatus.success
-            : HabitLogStatus.failure,
+        status: HabitLogStatus.success,
       );
 
-      await _databaseService.insertHabitLog(newLog);
+      await _databaseService.upsertHabitLogForDate(
+        habitId: habit.id,
+        date: today,
+        status: HabitLogStatus.success,
+      );
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        logs = [...logs, newLog];
+        logs = [
+          ...logs.where((log) {
+            return !(log.habitId == habit.id &&
+                log.date.year == today.year &&
+                log.date.month == today.month &&
+                log.date.day == today.day);
+          }),
+          newLog,
+        ];
       });
     }
   }
@@ -284,12 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final DateTime today = DateTime.now();
       final bool canLogToday = HabitStatsService.canLogHabitForDate(habit, today);
 
-      final bool isMarkedToday = logs.any((log) {
-        return log.habitId == habit.id &&
-            log.date.year == today.year &&
-            log.date.month == today.month &&
-            log.date.day == today.day;
-      });
+      final HabitLog? todayLog = _getHabitLogForDay(habit.id, today);
+
+      final HabitLogStatus? todayLogStatus = todayLog?.status;
 
       final int streakCount = HabitStatsService.getCurrentStreak(
         habit,
@@ -315,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return HabitCard(
         habit: habit,
-        isMarkedToday: isMarkedToday,
+        todayLogStatus: todayLogStatus,
         streakCount: streakCount,
         totalCount: totalCount,
         currentMilestone: currentMilestone,
@@ -340,6 +346,18 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
     }).toList();
+  }
+
+  HabitLog? _getHabitLogForDay(String habitId, DateTime date) {
+    for (final HabitLog log in logs) {
+      if (log.habitId == habitId &&
+          log.date.year == date.year &&
+          log.date.month == date.month &&
+          log.date.day == date.day) {
+        return log;
+      }
+    }
+    return null;
   }
 
   @override

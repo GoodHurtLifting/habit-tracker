@@ -44,16 +44,17 @@ class OverviewService {
     return habits.map((habit) {
       return DayHabitLogState(
         habit: habit,
-        isLogged: logsByHabitId.containsKey(habit.id),
+        loggedStatus: logsByHabitId[habit.id]?.status,
         canLog: HabitStatsService.canLogHabitForDate(habit, day),
         isPaused: HabitStatsService.isHabitPausedOnDate(habit, day),
       );
     }).toList();
   }
 
-  Future<void> toggleLogForDay({
+  Future<void> setLogForDay({
     required Habit habit,
     required DateTime date,
+    required HabitLogStatus? status,
   }) async {
     await ensureWeeklySummariesUpToDate();
     final DateTime day = DateTime(date.year, date.month, date.day);
@@ -66,11 +67,7 @@ class OverviewService {
       return;
     }
 
-    final List<HabitLog> dayLogs = await _databaseService.getHabitLogsForDate(day);
-
-    final bool hasLog = dayLogs.any((log) => log.habitId == habit.id);
-
-    if (hasLog) {
+    if (status == null) {
       await _databaseService.deleteHabitLogByDate(habit.id, day);
       return;
     }
@@ -78,9 +75,7 @@ class OverviewService {
     await _databaseService.upsertHabitLogForDate(
       habitId: habit.id,
       date: day,
-      status: habit.type == HabitType.build
-          ? HabitLogStatus.success
-          : HabitLogStatus.failure,
+      status: status,
     );
   }
 
@@ -161,13 +156,13 @@ class OverviewService {
 
 class DayHabitLogState {
   final Habit habit;
-  final bool isLogged;
+  final HabitLogStatus? loggedStatus;
   final bool canLog;
   final bool isPaused;
 
   const DayHabitLogState({
     required this.habit,
-    required this.isLogged,
+    required this.loggedStatus,
     required this.canLog,
     required this.isPaused,
   });

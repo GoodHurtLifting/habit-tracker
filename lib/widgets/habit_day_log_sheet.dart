@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/habit.dart';
+import '../models/habit_log.dart';
 import '../services/overview_service.dart';
 import '../utils/date_formatter.dart';
 
@@ -46,14 +47,15 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
     });
   }
 
-  Future<void> _toggle(DayHabitLogState state) async {
+  Future<void> _setLog(DayHabitLogState state, HabitLogStatus? status) async {
     if (!state.canLog) {
       return;
     }
 
-    await widget.overviewService.toggleLogForDay(
+    await widget.overviewService.setLogForDay(
       habit: state.habit,
       date: widget.selectedDate,
+      status: status,
     );
 
     if (!mounted) {
@@ -68,7 +70,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
         }
         return DayHabitLogState(
           habit: existing.habit,
-          isLogged: !existing.isLogged,
+          loggedStatus: status,
           canLog: existing.canLog,
           isPaused: existing.isPaused,
         );
@@ -145,9 +147,11 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                     final state = _states[index];
                     final bool isBuild = state.habit.type == HabitType.build;
                     final bool isEnabled = canEditDay && state.canLog;
-                    final String actionText = state.isLogged
-                        ? 'Undo'
-                        : (state.canLog ? (isBuild ? 'Done' : 'Slip') : 'Paused');
+                    final bool isLogged = state.loggedStatus != null;
+                    final bool isAvoidSuccess =
+                        !isBuild && state.loggedStatus == HabitLogStatus.success;
+                    final bool isAvoidSlip =
+                        !isBuild && state.loggedStatus == HabitLogStatus.failure;
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -155,12 +159,57 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
                       subtitle: Text(
                         state.isPaused
                             ? 'Paused'
-                            : (isBuild ? 'Build habit' : 'Avoid habit'),
+                            : isBuild
+                                ? (isLogged ? 'Completed' : 'Not logged')
+                                : isAvoidSuccess
+                                    ? 'Clean day logged'
+                                    : isAvoidSlip
+                                        ? 'Slip logged'
+                                        : 'Not logged',
                       ),
-                      trailing: TextButton(
-                        onPressed: isEnabled ? () => _toggle(state) : null,
-                        child: Text(actionText),
-                      ),
+                      trailing: isBuild
+                          ? TextButton(
+                              onPressed: isEnabled
+                                  ? () => _setLog(
+                                        state,
+                                        isLogged ? null : HabitLogStatus.success,
+                                      )
+                                  : null,
+                              child: Text(
+                                isLogged
+                                    ? 'Undo'
+                                    : (state.canLog ? 'Done' : 'Paused'),
+                              ),
+                            )
+                          : Wrap(
+                              spacing: 8,
+                              children: [
+                                TextButton(
+                                  onPressed: isEnabled
+                                      ? () => _setLog(
+                                            state,
+                                            HabitLogStatus.success,
+                                          )
+                                      : null,
+                                  child: const Text('Clean today'),
+                                ),
+                                TextButton(
+                                  onPressed: isEnabled
+                                      ? () => _setLog(
+                                            state,
+                                            HabitLogStatus.failure,
+                                          )
+                                      : null,
+                                  child: const Text('Slip'),
+                                ),
+                                TextButton(
+                                  onPressed: isEnabled && isLogged
+                                      ? () => _setLog(state, null)
+                                      : null,
+                                  child: const Text('Undo'),
+                                ),
+                              ],
+                            ),
                     );
                   },
                 ),
