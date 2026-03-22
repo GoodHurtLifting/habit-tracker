@@ -84,7 +84,6 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
     final bool isLogged = state.loggedStatus != null;
     final bool isAvoidSuccess =
         !isBuild && state.loggedStatus == HabitLogStatus.success;
-    final bool isAvoidSlip = !isBuild && state.loggedStatus == HabitLogStatus.failure;
 
     if (state.isPaused) {
       return 'Paused';
@@ -94,26 +93,16 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
       return isLogged ? 'Completed' : 'Not logged today';
     }
 
-    if (isAvoidSuccess) {
-      return 'Clean today';
-    }
-
-    if (isAvoidSlip) {
-      return 'Slipped today';
-    }
-
-    return 'Not logged today';
+    return isAvoidSuccess ? 'Clean today' : 'Not logged today';
   }
 
   List<Widget> _buildActions({
     required DayHabitLogState state,
     required bool canEditDay,
   }) {
-    final bool isBuild = state.habit.type == HabitType.build;
     final bool isEnabled = canEditDay && state.canLog;
     final bool isLogged = state.loggedStatus != null;
-    final bool isAvoidSuccess = !isBuild && state.loggedStatus == HabitLogStatus.success;
-    final bool isAvoidSlip = !isBuild && state.loggedStatus == HabitLogStatus.failure;
+    final bool isBuild = state.habit.type == HabitType.build;
 
     if (isBuild) {
       return [
@@ -126,49 +115,19 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
       ];
     }
 
-    if (!isLogged) {
-      return [
-        HabitActionButton(
-          label: 'Clean today',
-          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
-        ),
-        HabitActionButton(
-          label: 'Slip',
-          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
-          variant: HabitActionButtonVariant.secondary,
-        ),
-      ];
-    }
+    final bool isCleanLogged = state.loggedStatus == HabitLogStatus.success;
 
-    if (isAvoidSuccess) {
-      return [
-        HabitActionButton(
-          label: 'Undo',
-          onPressed: isEnabled ? () => _setLog(state, null) : null,
-        ),
-        HabitActionButton(
-          label: 'Slip',
-          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.failure) : null,
-          variant: HabitActionButtonVariant.secondary,
-        ),
-      ];
-    }
-
-    if (isAvoidSlip) {
-      return [
-        HabitActionButton(
-          label: 'Clean today',
-          onPressed: isEnabled ? () => _setLog(state, HabitLogStatus.success) : null,
-        ),
-        HabitActionButton(
-          label: 'Undo',
-          onPressed: isEnabled ? () => _setLog(state, null) : null,
-          variant: HabitActionButtonVariant.secondary,
-        ),
-      ];
-    }
-
-    return [];
+    return [
+      HabitActionButton(
+        label: isCleanLogged ? 'Undo' : 'Clean today',
+        onPressed: isEnabled
+            ? () => _setLog(
+          state,
+          isCleanLogged ? null : HabitLogStatus.success,
+        )
+            : null,
+      ),
+    ];
   }
 
   @override
