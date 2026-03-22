@@ -15,6 +15,7 @@ import '../widgets/habit_card.dart';
 import 'add_edit_habit_screen.dart';
 import 'overview_screen.dart';
 import 'stats_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -231,6 +232,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _goToSettingsScreen() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+  }
+
   Future<void> _pauseHabit(Habit habit) async {
     await _databaseService.pauseHabit(habit.id, DateTime.now());
 
@@ -392,6 +402,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _goToOverviewScreen,
             icon: const Icon(Icons.calendar_month),
             tooltip: 'Overview calendar',
+          ),
+          IconButton(
+            onPressed: _goToSettingsScreen,
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings & About',
           ),
         ],
       ),

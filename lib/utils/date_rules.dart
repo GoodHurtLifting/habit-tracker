@@ -15,7 +15,7 @@ class DateRules {
     return startOfWeekMonday(date).add(const Duration(days: 6));
   }
 
-  static DateTime? mostRecentEligibleCompletedWeekStart(DateTime now) {
+  static DateTime mostRecentEligibleCompletedWeekStart(DateTime now) {
     final DateTime thisWeekStart = startOfWeekMonday(now);
     // A week is only considered complete after local Monday begins.
     return thisWeekStart.subtract(const Duration(days: 7));
