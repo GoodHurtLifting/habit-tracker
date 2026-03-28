@@ -417,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: 'Add your first habit to start tracking.',
             )
           : ListView(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 96),
               children: [
                 _buildWeeklySummarySection(),
                 if (activeHabits.isEmpty && pausedHabits.isNotEmpty)

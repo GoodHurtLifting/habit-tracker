@@ -148,10 +148,40 @@ class HabitStatsService {
         return log.habitId == habit.id && log.status == HabitLogStatus.success;
       }).length;
     } else {
-      return logs.where((log) {
-        return log.habitId == habit.id && log.status == HabitLogStatus.failure;
-      }).length;
+      final List<HabitLog> habitLogs =
+      logs.where((log) => log.habitId == habit.id).toList();
+      return getDerivedSlipCount(habit, habitLogs);
     }
+  }
+
+  static int getDerivedSlipCount(Habit habit, List<HabitLog> logs) {
+    final DateTime today = _dateOnly(DateTime.now());
+    final DateTime start = getEffectiveStreakStartBoundary(habit);
+    final Map<DateTime, HabitLogStatus> statusByDay =
+    _getLatestStatusByDay(habit, logs);
+
+    int slips = 0;
+    DateTime day = start;
+
+    while (!day.isAfter(today)) {
+      if (isHabitPausedOnDate(habit, day)) {
+        day = day.add(const Duration(days: 1));
+        continue;
+      }
+
+      final HabitLogStatus? status = statusByDay[day];
+
+      if (status == HabitLogStatus.failure) {
+        slips++;
+      } else if (status == null && day != today) {
+        // Past unlogged avoid day counts as a slip.
+        slips++;
+      }
+
+      day = day.add(const Duration(days: 1));
+    }
+
+    return slips;
   }
 
   static int getBestStreak(Habit habit, List<HabitLog> logs) {
@@ -172,9 +202,10 @@ class HabitStatsService {
     final int totalCompletions = habitLogs.where((log) {
       return log.status == HabitLogStatus.success;
     }).length;
-    final int totalSlips = habitLogs.where((log) {
-      return log.status == HabitLogStatus.failure;
-    }).length;
+
+    final int totalSlips = habit.type == HabitType.avoid
+        ? getDerivedSlipCount(habit, habitLogs)
+        : 0;
 
     return HabitStatSummary(
       habit: habit,
@@ -343,15 +374,19 @@ class HabitStatsService {
       }
 
       final bool isToday = day == today;
+
       if (status == HabitLogStatus.failure) {
         break;
       }
 
       if (status == null) {
         if (isToday) {
+          // Today is still in progress for avoid habits.
           day = day.subtract(const Duration(days: 1));
           continue;
         }
+
+        // Past unlogged day counts as a slip and breaks the streak.
         break;
       }
     }
@@ -486,14 +521,28 @@ class HabitStatsService {
     DateTime day = start;
 
     while (!day.isAfter(today)) {
+      if (isHabitPausedOnDate(habit, day)) {
+        day = day.add(const Duration(days: 1));
+        continue;
+      }
+
       final HabitLogStatus? status = statusByDay[day];
+      final bool isToday = day == today;
+
       if (status == HabitLogStatus.success) {
         current++;
         if (current > best) {
           best = current;
         }
-      } else {
+      } else if (status == HabitLogStatus.failure) {
         current = 0;
+      } else {
+        if (isToday) {
+          // Today is in progress; do not count it, do not break historical best.
+        } else {
+          // Past unlogged day counts as a slip.
+          current = 0;
+        }
       }
 
       day = day.add(const Duration(days: 1));

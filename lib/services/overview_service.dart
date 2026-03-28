@@ -80,8 +80,8 @@ class OverviewService {
   }
 
   Future<Map<DateTime, CalendarDaySummary>> getMonthSummaries(
-    DateTime month,
-  ) async {
+      DateTime month,
+      ) async {
     await ensureWeeklySummariesUpToDate();
     final DateTime monthStart = DateTime(month.year, month.month, 1);
     final DateTime nextMonthStart = DateTime(month.year, month.month + 1, 1);
@@ -92,8 +92,8 @@ class OverviewService {
       nextMonthStart,
     );
 
-    final Map<String, String> habitNameById = {
-      for (final habit in allHabits) habit.id: habit.name,
+    final Map<String, Habit> habitsById = {
+      for (final habit in allHabits) habit.id: habit,
     };
 
     final Map<DateTime, Set<String>> goalsByDay = {};
@@ -101,7 +101,8 @@ class OverviewService {
 
     for (final log in logs) {
       final DateTime day = DateTime(log.date.year, log.date.month, log.date.day);
-      final String habitName = habitNameById[log.habitId] ?? 'Unknown habit';
+      final Habit? habit = habitsById[log.habitId];
+      final String habitName = habit?.name ?? 'Unknown habit';
 
       if (log.status == HabitLogStatus.success) {
         goalsByDay.putIfAbsent(day, () => <String>{}).add(habitName);
@@ -110,13 +111,6 @@ class OverviewService {
       }
     }
 
-    final Set<DateTime> allDays = {
-      ...goalsByDay.keys,
-      ...slipsByDay.keys,
-    };
-
-    final Map<DateTime, CalendarDaySummary> summaries = {};
-
     final DateTime normalizedMonth = DateFormatter.normalize(monthStart);
     final int daysInMonth = DateTime(
       normalizedMonth.year,
@@ -124,29 +118,52 @@ class OverviewService {
       0,
     ).day;
 
-    for (int i = 0; i < daysInMonth; i++) {
-      allDays.add(
-        DateTime(normalizedMonth.year, normalizedMonth.month, i + 1),
-      );
-    }
+    final Map<DateTime, CalendarDaySummary> summaries = {};
 
-    for (final day in allDays) {
-      final List<String> goalHits = (goalsByDay[day] ?? <String>{}).toList()
-        ..sort();
-      final List<String> slips = (slipsByDay[day] ?? <String>{}).toList()..sort();
+    for (int i = 0; i < daysInMonth; i++) {
+      final DateTime day =
+      DateTime(normalizedMonth.year, normalizedMonth.month, i + 1);
+
+      final List<String> goalHits = (goalsByDay[day] ?? <String>{}).toList()..sort();
+      final Set<String> slipNames = {...(slipsByDay[day] ?? <String>{})};
+
+      bool hasMissedOpportunity = false;
+
+      if (DateRules.isEligiblePastLoggingDate(day)) {
+        for (final habit in allHabits) {
+          if (!canEditDate(day)) {
+            continue;
+          }
+
+          if (!HabitStatsService.canLogHabitForDate(habit, day)) {
+            continue;
+          }
+
+          final bool alreadyHasExplicitLog =
+              goalHits.contains(habit.name) || slipNames.contains(habit.name);
+
+          if (alreadyHasExplicitLog) {
+            continue;
+          }
+
+          if (habit.type == HabitType.avoid) {
+            // Past unlogged avoid day counts as a slip.
+            slipNames.add(habit.name);
+          } else {
+            // Build habit past unlogged stays a gray missed opportunity.
+            hasMissedOpportunity = true;
+          }
+        }
+      }
+
+      final List<String> slips = slipNames.toList()..sort();
       final bool hasActivity = goalHits.isNotEmpty || slips.isNotEmpty;
-      final bool hasLoggableHabit = allHabits.any(
-        (habit) => HabitStatsService.canLogHabitForDate(habit, day),
-      );
 
       summaries[day] = CalendarDaySummary(
         date: day,
         goalHitHabitNames: goalHits,
         slipHabitNames: slips,
-        hasMissedOpportunity:
-            !hasActivity &&
-            hasLoggableHabit &&
-            DateRules.isEligiblePastLoggingDate(day),
+        hasMissedOpportunity: !hasActivity && hasMissedOpportunity,
       );
     }
 
