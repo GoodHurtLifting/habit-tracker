@@ -107,6 +107,8 @@ const List<HabitMilestone> habitMilestones = [
     expectation: 'Protect the habits that got you here so this becomes your new normal.',
     benefit: 'You have built a major long-term health and identity shift over the past year.',
   ),
+
+
   HabitMilestone(
     id: 'daily_walk_day_0',
     trackId: HabitMilestoneTracks.dailyWalk,
@@ -155,6 +157,8 @@ const List<HabitMilestone> habitMilestones = [
     expectation: 'Keep the goal realistic so it stays sustainable.',
     benefit: 'A month of walking is a meaningful long-term foundation.',
   ),
+
+
   HabitMilestone(
     id: 'read_twenty_minutes_day_0',
     trackId: HabitMilestoneTracks.readTwentyMinutes,
@@ -227,6 +231,8 @@ const List<HabitMilestone> habitMilestones = [
     expectation: 'Keep guarding the time and environment that made this possible.',
     benefit: 'A year of reading is a meaningful identity shift and lasting personal investment.',
   ),
+
+
   HabitMilestone(
     id: 'exercise_three_per_week_week_0',
     trackId: HabitMilestoneTracks.exerciseThreePerWeek,
@@ -291,13 +297,15 @@ const List<HabitMilestone> habitMilestones = [
     expectation: 'Keep the habit sustainable so it remains part of your normal routine.',
     benefit: 'A year of regular training reflects a major identity shift and durable confidence.',
   ),
+
+
   HabitMilestone(
     id: 'quit_cocaine_day_0',
     trackId: HabitMilestoneTracks.quitCocaine,
     targetDays: 0,
     title: 'Make it through the day',
-    expectation: 'Fatigue, low mood, irritability, and strong cravings can hit early.',
-    benefit: 'Getting through the first day is an important break from the cycle of use.',
+    expectation: 'Depression and deep need to keep the party going.',
+    benefit: '.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_1',
@@ -305,7 +313,15 @@ const List<HabitMilestone> habitMilestones = [
     targetDays: 1,
     title: 'Initial crash phase',
     expectation: 'Fatigue, low mood, irritability, and strong cravings can hit early.',
-    benefit: 'Getting through the first day is an important break from the cycle of use.',
+    benefit: 'The first 48 are tough because the drugs are still working their way out of your system.',
+  ),
+  HabitMilestone(
+    id: 'quit_cocaine_day_3',
+    trackId: HabitMilestoneTracks.quitCocaine,
+    targetDays: 3,
+    title: 'Beginning Phase 2',
+    expectation: 'Psychological battle is changing. Beginning to feel like your decisions were not so bad.',
+    benefit: 'The first 48 are tough because the drugs are still working their way out of your system.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_4',
