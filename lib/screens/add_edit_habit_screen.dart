@@ -18,6 +18,12 @@ class AddEditHabitScreen extends StatefulWidget {
 class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _trigger1Controller = TextEditingController();
+  final TextEditingController _trigger2Controller = TextEditingController();
+  final TextEditingController _trigger3Controller = TextEditingController();
+  final TextEditingController _motivation1Controller = TextEditingController();
+  final TextEditingController _motivation2Controller = TextEditingController();
+  final TextEditingController _motivation3Controller = TextEditingController();
 
   HabitType _selectedType = HabitType.build;
   String? _selectedMilestoneTrackId;
@@ -34,6 +40,12 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       _descriptionController.text = existingHabit.description ?? '';
       _selectedType = existingHabit.type;
       _selectedMilestoneTrackId = existingHabit.milestoneTrackId;
+      _trigger1Controller.text = existingHabit.trigger1 ?? '';
+      _trigger2Controller.text = existingHabit.trigger2 ?? '';
+      _trigger3Controller.text = existingHabit.trigger3 ?? '';
+      _motivation1Controller.text = existingHabit.motivation1 ?? '';
+      _motivation2Controller.text = existingHabit.motivation2 ?? '';
+      _motivation3Controller.text = existingHabit.motivation3 ?? '';
     }
   }
 
@@ -41,11 +53,32 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _trigger1Controller.dispose();
+    _trigger2Controller.dispose();
+    _trigger3Controller.dispose();
+    _motivation1Controller.dispose();
+    _motivation2Controller.dispose();
+    _motivation3Controller.dispose();
     super.dispose();
+  }
+
+  HabitType get _currentType {
+    if (_isEditMode) {
+      return _selectedType;
+    }
+
+    final selectedOption = getPredefinedHabitOptionById(_selectedPredefinedHabitId);
+    return selectedOption?.type ?? HabitType.build;
+  }
+
+  String? _normalizedOptional(TextEditingController controller) {
+    final String value = controller.text.trim();
+    return value.isEmpty ? null : value;
   }
 
   void _saveHabit() {
     final String description = _descriptionController.text.trim();
+    final bool shouldSaveAvoidQuestionnaire = _currentType == HabitType.avoid;
 
     String name = _nameController.text.trim();
 
@@ -90,6 +123,24 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       sortOrder: widget.existingHabit?.sortOrder ?? 0,
       accentColorKey: widget.existingHabit?.accentColorKey ??
           HabitColorUtils.defaultAccentColorKeyForType(_selectedType),
+      trigger1: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_trigger1Controller)
+          : widget.existingHabit?.trigger1,
+      trigger2: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_trigger2Controller)
+          : widget.existingHabit?.trigger2,
+      trigger3: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_trigger3Controller)
+          : widget.existingHabit?.trigger3,
+      motivation1: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_motivation1Controller)
+          : widget.existingHabit?.motivation1,
+      motivation2: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_motivation2Controller)
+          : widget.existingHabit?.motivation2,
+      motivation3: shouldSaveAvoidQuestionnaire
+          ? _normalizedOptional(_motivation3Controller)
+          : widget.existingHabit?.motivation3,
     );
 
     Navigator.pop(context, savedHabit);
@@ -194,6 +245,88 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
               ),
               maxLines: 2,
             ),
+            if (_currentType == HabitType.avoid) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Triggers',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'What situations, people, places, or feelings tend to pull you toward this?',
+                  style: TextStyle(fontSize: 12, color: AppTheme.metaText),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _trigger1Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Trigger 1',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _trigger2Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Trigger 2',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _trigger3Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Trigger 3',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Motivation',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'What are the biggest reasons you want to stop?',
+                  style: TextStyle(fontSize: 12, color: AppTheme.metaText),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _motivation1Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Motivation 1',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _motivation2Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Motivation 2',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _motivation3Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Motivation 3',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,

@@ -21,6 +21,12 @@ class Habit {
   final DateTime? archivedAt;
   final int sortOrder;
   final String accentColorKey;
+  final String? trigger1;
+  final String? trigger2;
+  final String? trigger3;
+  final String? motivation1;
+  final String? motivation2;
+  final String? motivation3;
 
   const Habit({
     required this.id,
@@ -36,6 +42,12 @@ class Habit {
     this.archivedAt,
     this.sortOrder = 0,
     required this.accentColorKey,
+    this.trigger1,
+    this.trigger2,
+    this.trigger3,
+    this.motivation1,
+    this.motivation2,
+    this.motivation3,
   });
 
   Habit copyWith({
@@ -52,6 +64,12 @@ class Habit {
     Object? archivedAt = _unset,
     int? sortOrder,
     String? accentColorKey,
+    Object? trigger1 = _unset,
+    Object? trigger2 = _unset,
+    Object? trigger3 = _unset,
+    Object? motivation1 = _unset,
+    Object? motivation2 = _unset,
+    Object? motivation3 = _unset,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -70,6 +88,18 @@ class Habit {
       archivedAt: archivedAt == _unset ? this.archivedAt : archivedAt as DateTime?,
       sortOrder: sortOrder ?? this.sortOrder,
       accentColorKey: accentColorKey ?? this.accentColorKey,
+      trigger1: trigger1 == _unset ? this.trigger1 : trigger1 as String?,
+      trigger2: trigger2 == _unset ? this.trigger2 : trigger2 as String?,
+      trigger3: trigger3 == _unset ? this.trigger3 : trigger3 as String?,
+      motivation1: motivation1 == _unset
+          ? this.motivation1
+          : motivation1 as String?,
+      motivation2: motivation2 == _unset
+          ? this.motivation2
+          : motivation2 as String?,
+      motivation3: motivation3 == _unset
+          ? this.motivation3
+          : motivation3 as String?,
     );
   }
 
@@ -88,6 +118,12 @@ class Habit {
       'archived_at': archivedAt?.toIso8601String(),
       'sort_order': sortOrder,
       'accent_color_key': accentColorKey,
+      'trigger1': trigger1,
+      'trigger2': trigger2,
+      'trigger3': trigger3,
+      'motivation1': motivation1,
+      'motivation2': motivation2,
+      'motivation3': motivation3,
     };
   }
 
@@ -118,6 +154,12 @@ class Habit {
           (map['type'] == HabitType.avoid.name
               ? defaultAvoidAccentColorKey
               : defaultBuildAccentColorKey),
+      trigger1: map['trigger1'] as String?,
+      trigger2: map['trigger2'] as String?,
+      trigger3: map['trigger3'] as String?,
+      motivation1: map['motivation1'] as String?,
+      motivation2: map['motivation2'] as String?,
+      motivation3: map['motivation3'] as String?,
     );
   }
 }
