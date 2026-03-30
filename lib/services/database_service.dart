@@ -12,7 +12,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 7;
+  static const int _databaseVersion = 8;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -54,7 +54,13 @@ class DatabaseService {
             is_archived INTEGER NOT NULL DEFAULT 0,
             archived_at TEXT,
             sort_order INTEGER NOT NULL,
-            accent_color_key TEXT NOT NULL
+            accent_color_key TEXT NOT NULL,
+            trigger1 TEXT,
+            trigger2 TEXT,
+            trigger3 TEXT,
+            motivation1 TEXT,
+            motivation2 TEXT,
+            motivation3 TEXT
           )
         ''');
 
@@ -181,6 +187,61 @@ class DatabaseService {
 
         if (oldVersion < 7) {
           await _ensureAccentColorColumnAndBackfill(db);
+        }
+
+        if (oldVersion < 8) {
+          final List<Map<String, Object?>> columns =
+              await db.rawQuery('PRAGMA table_info($habitsTable)');
+
+          final bool hasTrigger1 = columns.any(
+            (column) => column['name'] == 'trigger1',
+          );
+          final bool hasTrigger2 = columns.any(
+            (column) => column['name'] == 'trigger2',
+          );
+          final bool hasTrigger3 = columns.any(
+            (column) => column['name'] == 'trigger3',
+          );
+          final bool hasMotivation1 = columns.any(
+            (column) => column['name'] == 'motivation1',
+          );
+          final bool hasMotivation2 = columns.any(
+            (column) => column['name'] == 'motivation2',
+          );
+          final bool hasMotivation3 = columns.any(
+            (column) => column['name'] == 'motivation3',
+          );
+
+          if (!hasTrigger1) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN trigger1 TEXT',
+            );
+          }
+          if (!hasTrigger2) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN trigger2 TEXT',
+            );
+          }
+          if (!hasTrigger3) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN trigger3 TEXT',
+            );
+          }
+          if (!hasMotivation1) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN motivation1 TEXT',
+            );
+          }
+          if (!hasMotivation2) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN motivation2 TEXT',
+            );
+          }
+          if (!hasMotivation3) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN motivation3 TEXT',
+            );
+          }
         }
       },
     );
