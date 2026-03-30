@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/habit.dart';
 import '../models/habit_log.dart';
 import '../models/weekly_summary.dart';
+import '../utils/habit_color_utils.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -11,7 +12,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 6;
+  static const int _databaseVersion = 7;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -52,7 +53,8 @@ class DatabaseService {
             resumed_at TEXT,
             is_archived INTEGER NOT NULL DEFAULT 0,
             archived_at TEXT,
-            sort_order INTEGER NOT NULL
+            sort_order INTEGER NOT NULL,
+            accent_color_key TEXT NOT NULL
           )
         ''');
 
@@ -176,8 +178,58 @@ class DatabaseService {
             });
           }
         }
+
+        if (oldVersion < 7) {
+          await _ensureAccentColorColumnAndBackfill(db);
+        }
       },
     );
+  }
+
+  Future<void> _ensureAccentColorColumnAndBackfill(Database db) async {
+    final List<Map<String, Object?>> columns =
+        await db.rawQuery('PRAGMA table_info($habitsTable)');
+    final bool hasAccentColorKey = columns.any(
+      (column) => column['name'] == 'accent_color_key',
+    );
+
+    if (!hasAccentColorKey) {
+      await db.execute(
+        'ALTER TABLE $habitsTable ADD COLUMN accent_color_key TEXT',
+      );
+    }
+
+    final List<Map<String, Object?>> habitRows = await db.query(
+      habitsTable,
+      columns: ['id', 'type', 'accent_color_key'],
+      orderBy: 'created_at ASC, id ASC',
+    );
+
+    int buildIndex = 0;
+    int avoidIndex = 0;
+
+    await db.transaction((txn) async {
+      for (final row in habitRows) {
+        final String? existingKey = row['accent_color_key'] as String?;
+        if (existingKey != null && existingKey.trim().isNotEmpty) {
+          continue;
+        }
+
+        final HabitType type = row['type'] == HabitType.avoid.name
+            ? HabitType.avoid
+            : HabitType.build;
+        final int index = type == HabitType.avoid ? avoidIndex++ : buildIndex++;
+        final String accentColorKey =
+            HabitColorUtils.accentColorKeyForTypeIndex(type, index);
+
+        await txn.update(
+          habitsTable,
+          {'accent_color_key': accentColorKey},
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        );
+      }
+    });
   }
 
   Future<void> _createWeeklySummariesTable(Database db) async {

@@ -4,6 +4,7 @@ import '../app_theme.dart';
 import '../data/habit_milestone_definitions.dart';
 import '../data/predefined_habit_options.dart';
 import '../models/habit.dart';
+import '../utils/habit_color_utils.dart';
 
 class AddEditHabitScreen extends StatefulWidget {
   final Habit? existingHabit;
@@ -87,6 +88,8 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       isArchived: widget.existingHabit?.isArchived ?? false,
       archivedAt: widget.existingHabit?.archivedAt,
       sortOrder: widget.existingHabit?.sortOrder ?? 0,
+      accentColorKey: widget.existingHabit?.accentColorKey ??
+          HabitColorUtils.defaultAccentColorKeyForType(_selectedType),
     );
 
     Navigator.pop(context, savedHabit);

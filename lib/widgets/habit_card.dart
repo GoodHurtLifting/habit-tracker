@@ -7,6 +7,7 @@ import '../models/habit_benefit_message.dart';
 import '../models/habit_log.dart';
 import '../models/habit_milestone.dart';
 import '../utils/date_formatter.dart';
+import '../utils/habit_color_utils.dart';
 import 'habit_action_button.dart';
 
 class HabitCard extends StatelessWidget {
@@ -54,8 +55,7 @@ class HabitCard extends StatelessWidget {
         isBuildHabit && isWeeklyMilestoneTrack(habit.milestoneTrackId);
     final int? weeklyTarget =
     getWeeklyTargetCountForTrack(habit.milestoneTrackId);
-    final Color accentColor =
-        isBuildHabit ? AppTheme.buildAccent : AppTheme.avoidAccent;
+    final Color accentColor = HabitColorUtils.getAccentColorForHabit(habit);
 
     final bool isLoggedToday = todayLogStatus != null;
     final bool isAvoidSuccessToday = todayLogStatus == HabitLogStatus.success;
