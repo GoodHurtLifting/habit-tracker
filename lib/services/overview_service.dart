@@ -122,7 +122,9 @@ class OverviewService {
           habitName: habitName,
           accentColorKey: accentColorKey,
           type: log.status == HabitLogStatus.success
-              ? CalendarDayActivityType.success
+              ? (habit?.type == HabitType.avoid
+                  ? CalendarDayActivityType.avoidSuccess
+                  : CalendarDayActivityType.buildSuccess)
               : CalendarDayActivityType.slip,
         ),
       );

@@ -14,7 +14,7 @@ class OverviewScreen extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<OverviewScreen> {
-  static const int _maxVisibleActivityDots = 4;
+  static const int _maxVisibleActivityDots = 7;
   final OverviewService _overviewService = OverviewService();
 
   DateTime _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
@@ -136,7 +136,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         crossAxisCount: 7,
                         mainAxisSpacing: 6,
                         crossAxisSpacing: 6,
-                        childAspectRatio: 0.95,
+                        childAspectRatio: 0.88,
                       ),
                       itemBuilder: (context, index) {
                         if (index < leadingBlanks) {
@@ -151,12 +151,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         );
 
                         final CalendarDaySummary? summary = _daySummaries[day];
-                        final bool isActive = summary?.hasActivity ?? false;
+                        final bool hasVisibleActivity =
+                            summary?.activityMarkers.any(
+                              (marker) => marker.isVisibleInCalendarOverview,
+                            ) ??
+                            false;
                         final bool isFutureDay = day.isAfter(todayDateOnly);
                         final bool isEditableDay = _overviewService.canEditDate(day);
                         final bool isLockedDay = !isFutureDay && !isEditableDay;
-                        final bool showMissedDot =
-                            !isActive && (summary?.hasMissedOpportunity ?? false);
 
                         return InkWell(
                           onTap: isEditableDay ? () => _showDayLogSheet(day) : null,
@@ -167,12 +169,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
                               borderRadius: BorderRadius.circular(8),
                               color: isFutureDay || isLockedDay
                                   ? AppTheme.metaText.withValues(alpha: 0.14)
-                                  : isActive
+                                  : hasVisibleActivity
                                   ? AppTheme.buildAccent.withValues(alpha: 0.14)
                                   : Colors.transparent,
                             ),
                             padding: const EdgeInsets.symmetric(
-                              vertical: 8,
+                              vertical: 6,
                               horizontal: 6,
                             ),
                             child: Column(
@@ -182,7 +184,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                   '$dayNumber',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: isActive
+                                    fontWeight: hasVisibleActivity
                                         ? FontWeight.w700
                                         : FontWeight.w400,
                                     color: isFutureDay || isLockedDay
@@ -191,10 +193,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                if (summary?.hasActivity == true)
+                                if (summary != null && hasVisibleActivity)
                                   _buildActivityMarkers(summary!)
-                                else if (showMissedDot)
-                                  _buildDot(AppTheme.metaText),
                               ],
                             ),
                           ),
@@ -208,19 +208,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _buildDot(Color color) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-
   Widget _buildActivityMarkers(CalendarDaySummary summary) {
-    final List<CalendarDayActivityMarker> markers = summary.activityMarkers;
+    final List<CalendarDayActivityMarker> markers = summary.activityMarkers
+        .where((marker) => marker.isVisibleInCalendarOverview)
+        .toList();
     if (markers.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -232,8 +223,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 4,
-      runSpacing: 2,
+      spacing: 3,
+      runSpacing: 3,
       children: [
         for (final marker in visibleMarkers)
           _buildActivityDot(
@@ -255,8 +246,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   Widget _buildActivityDot(Color color, {required bool isSlip}) {
     return Container(
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
