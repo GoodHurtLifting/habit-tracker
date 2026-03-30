@@ -19,7 +19,8 @@ class CalendarDaySummary {
 }
 
 enum CalendarDayActivityType {
-  success,
+  buildSuccess,
+  avoidSuccess,
   slip,
 }
 
@@ -35,4 +36,9 @@ class CalendarDayActivityMarker {
     required this.accentColorKey,
     required this.type,
   });
+
+  bool get isVisibleInCalendarOverview {
+    return type == CalendarDayActivityType.buildSuccess ||
+        type == CalendarDayActivityType.slip;
+  }
 }
