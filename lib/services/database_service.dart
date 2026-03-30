@@ -11,7 +11,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 5;
+  static const int _databaseVersion = 6;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -51,7 +51,8 @@ class DatabaseService {
             paused_at TEXT,
             resumed_at TEXT,
             is_archived INTEGER NOT NULL DEFAULT 0,
-            archived_at TEXT
+            archived_at TEXT,
+            sort_order INTEGER NOT NULL
           )
         ''');
 
@@ -143,6 +144,38 @@ class DatabaseService {
             );
           }
         }
+
+        if (oldVersion < 6) {
+          final List<Map<String, Object?>> columns =
+              await db.rawQuery('PRAGMA table_info($habitsTable)');
+
+          final bool hasSortOrder = columns.any(
+            (column) => column['name'] == 'sort_order',
+          );
+
+          if (!hasSortOrder) {
+            await db.execute(
+              'ALTER TABLE $habitsTable ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0',
+            );
+
+            final List<Map<String, Object?>> habitRows = await db.query(
+              habitsTable,
+              columns: ['id'],
+              orderBy: 'created_at ASC',
+            );
+
+            await db.transaction((txn) async {
+              for (int i = 0; i < habitRows.length; i++) {
+                await txn.update(
+                  habitsTable,
+                  {'sort_order': i},
+                  where: 'id = ?',
+                  whereArgs: [habitRows[i]['id']],
+                );
+              }
+            });
+          }
+        }
       },
     );
   }
@@ -164,7 +197,10 @@ class DatabaseService {
 
   Future<List<Habit>> getHabits() async {
     final db = await database;
-    final rows = await db.query(habitsTable, orderBy: 'created_at ASC');
+    final rows = await db.query(
+      habitsTable,
+      orderBy: 'sort_order ASC, created_at ASC',
+    );
     return rows.map(Habit.fromMap).toList();
   }
 
@@ -298,6 +334,24 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [habit.id],
     );
+  }
+
+  Future<void> updateHabitSortOrders(List<Habit> habits) async {
+    if (habits.isEmpty) {
+      return;
+    }
+
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final habit in habits) {
+        await txn.update(
+          habitsTable,
+          {'sort_order': habit.sortOrder},
+          where: 'id = ?',
+          whereArgs: [habit.id],
+        );
+      }
+    });
   }
 
   Future<void> deleteHabit(String habitId) async {

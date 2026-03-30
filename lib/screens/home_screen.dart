@@ -177,14 +177,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (newHabit != null) {
-      await _databaseService.insertHabit(newHabit);
+      final int nextSortOrder = habits
+              .where((habit) => !habit.isArchived && !habit.isPaused)
+              .fold<int>(
+                -1,
+                (currentMax, habit) =>
+                    habit.sortOrder > currentMax ? habit.sortOrder : currentMax,
+              ) +
+          1;
+      final Habit habitToInsert = newHabit.copyWith(sortOrder: nextSortOrder);
+      await _databaseService.insertHabit(habitToInsert);
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        habits = [...habits, newHabit];
+        habits = [...habits, habitToInsert];
       });
     }
   }
@@ -332,6 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       return HabitCard(
+        key: ValueKey(habit.id),
         habit: habit,
         todayLogStatus: todayLogStatus,
         streakCount: streakCount,
@@ -360,6 +370,76 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
+  Future<void> _reorderHabitsInSection({
+    required bool isPausedSection,
+    required int oldIndex,
+    required int newIndex,
+  }) async {
+    final List<Habit> sectionHabits = habits
+        .where((habit) => !habit.isArchived && habit.isPaused == isPausedSection)
+        .toList()
+      ..sort((a, b) {
+        final int sortCompare = a.sortOrder.compareTo(b.sortOrder);
+        if (sortCompare != 0) {
+          return sortCompare;
+        }
+        return a.createdAt.compareTo(b.createdAt);
+      });
+
+    if (oldIndex < 0 ||
+        oldIndex >= sectionHabits.length ||
+        newIndex < 0 ||
+        newIndex > sectionHabits.length) {
+      return;
+    }
+
+    int targetIndex = newIndex;
+    if (targetIndex > oldIndex) {
+      targetIndex -= 1;
+    }
+
+    final Habit movedHabit = sectionHabits.removeAt(oldIndex);
+    sectionHabits.insert(targetIndex, movedHabit);
+
+    final List<Habit> reorderedSectionHabits = sectionHabits
+        .asMap()
+        .entries
+        .map((entry) => entry.value.copyWith(sortOrder: entry.key))
+        .toList();
+    final Map<String, Habit> reorderedById = {
+      for (final habit in reorderedSectionHabits) habit.id: habit,
+    };
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      habits = habits.map((habit) {
+        return reorderedById[habit.id] ?? habit;
+      }).toList();
+    });
+
+    await _databaseService.updateHabitSortOrders(reorderedSectionHabits);
+  }
+
+  Widget _buildReorderableHabitSection(
+    List<Habit> sectionHabits,
+    Map<String, DateTime> lastLoggedDatesByHabit, {
+    required bool isPausedSection,
+  }) {
+    return ReorderableListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      onReorder: (oldIndex, newIndex) => _reorderHabitsInSection(
+        isPausedSection: isPausedSection,
+        oldIndex: oldIndex,
+        newIndex: newIndex,
+      ),
+      children: _buildHabitCards(sectionHabits, lastLoggedDatesByHabit),
+    );
+  }
+
   HabitLog? _getHabitLogForDay(String habitId, DateTime date) {
     for (final HabitLog log in logs) {
       if (log.habitId == habitId &&
@@ -381,6 +461,10 @@ class _HomeScreenState extends State<HomeScreen> {
     int activeToday = 0;
 
     for (final Habit habit in habits) {
+      if (habit.isArchived) {
+        continue;
+      }
+
       if (!HabitStatsService.canLogHabitForDate(habit, today)) {
         continue;
       }
@@ -421,8 +505,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final Map<String, DateTime> lastLoggedDatesByHabit =
         HabitStatsService.getLastLoggedDatesByHabit(logs);
-    final List<Habit> activeHabits = habits.where((habit) => !habit.isPaused).toList();
-    final List<Habit> pausedHabits = habits.where((habit) => habit.isPaused).toList();
+    final List<Habit> visibleHabits =
+        habits.where((habit) => !habit.isArchived).toList();
+    int compareHabitsBySortOrder(Habit a, Habit b) {
+      final int sortCompare = a.sortOrder.compareTo(b.sortOrder);
+      if (sortCompare != 0) {
+        return sortCompare;
+      }
+      return a.createdAt.compareTo(b.createdAt);
+    }
+
+    final List<Habit> activeHabits =
+        visibleHabits.where((habit) => !habit.isPaused).toList()
+          ..sort(compareHabitsBySortOrder);
+    final List<Habit> pausedHabits =
+        visibleHabits.where((habit) => habit.isPaused).toList()
+          ..sort(compareHabitsBySortOrder);
 
     return Scaffold(
       appBar: AppBar(
@@ -445,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: habits.isEmpty
+      body: visibleHabits.isEmpty
           ? const AppEmptyState(
               title: 'No habits yet',
               subtitle: 'Add your first habit to start tracking.',
@@ -462,11 +560,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 if (activeHabits.isNotEmpty) ...[
                   _buildSectionHeader('Active Habits'),
-                  ..._buildHabitCards(activeHabits, lastLoggedDatesByHabit),
+                  _buildReorderableHabitSection(
+                    activeHabits,
+                    lastLoggedDatesByHabit,
+                    isPausedSection: false,
+                  ),
                 ],
                 if (pausedHabits.isNotEmpty) ...[
                   _buildSectionHeader('Paused Habits'),
-                  ..._buildHabitCards(pausedHabits, lastLoggedDatesByHabit),
+                  _buildReorderableHabitSection(
+                    pausedHabits,
+                    lastLoggedDatesByHabit,
+                    isPausedSection: true,
+                  ),
                 ],
               ],
             ),

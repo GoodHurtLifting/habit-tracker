@@ -84,6 +84,9 @@ class _AddEditHabitScreenState extends State<AddEditHabitScreen> {
       isPaused: widget.existingHabit?.isPaused ?? false,
       pausedAt: widget.existingHabit?.pausedAt,
       resumedAt: widget.existingHabit?.resumedAt,
+      isArchived: widget.existingHabit?.isArchived ?? false,
+      archivedAt: widget.existingHabit?.archivedAt,
+      sortOrder: widget.existingHabit?.sortOrder ?? 0,
     );
 
     Navigator.pop(context, savedHabit);
