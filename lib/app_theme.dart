@@ -5,8 +5,8 @@ class AppTheme {
   static const Color cardBackground = Color(0xFF1E1E1E);
   static const Color divider = Color(0xFF2A2A2A);
 
-  static const Color buildAccent = Color(0xFF00E676);
-  static const Color avoidAccent = Color(0xFFFF1744);
+  static const Color buildAccent = Color(0xFF42A5F5);
+  static const Color avoidAccent = Color(0xFFFFA726);
 
   static const Color primaryText = Colors.white;
   static const Color secondaryText = Colors.white70;
