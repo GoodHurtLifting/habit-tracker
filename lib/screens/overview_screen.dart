@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../models/calendar_day_summary.dart';
 import '../services/overview_service.dart';
+import '../utils/habit_color_utils.dart';
 import '../widgets/habit_day_log_sheet.dart';
 
 class OverviewScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class OverviewScreen extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<OverviewScreen> {
+  static const int _maxVisibleActivityDots = 4;
   final OverviewService _overviewService = OverviewService();
 
   DateTime _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
@@ -189,20 +191,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                if (summary?.hasGoalHits == true ||
-                                    summary?.hasSlips == true)
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (summary?.hasGoalHits == true)
-                                        _buildDot(AppTheme.buildAccent),
-                                      if (summary?.hasGoalHits == true &&
-                                          summary?.hasSlips == true)
-                                        const SizedBox(width: 6),
-                                      if (summary?.hasSlips == true)
-                                        _buildDot(AppTheme.avoidAccent),
-                                    ],
-                                  )
+                                if (summary?.hasActivity == true)
+                                  _buildActivityMarkers(summary!)
                                 else if (showMissedDot)
                                   _buildDot(AppTheme.metaText),
                               ],
@@ -225,6 +215,54 @@ class _OverviewScreenState extends State<OverviewScreen> {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
+      ),
+    );
+  }
+
+  Widget _buildActivityMarkers(CalendarDaySummary summary) {
+    final List<CalendarDayActivityMarker> markers = summary.activityMarkers;
+    if (markers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final List<CalendarDayActivityMarker> visibleMarkers = markers.take(
+      _maxVisibleActivityDots,
+    ).toList();
+    final int remainingCount = markers.length - visibleMarkers.length;
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 4,
+      runSpacing: 2,
+      children: [
+        for (final marker in visibleMarkers)
+          _buildActivityDot(
+            HabitColorUtils.resolveAccentColor(marker.accentColorKey),
+            isSlip: marker.type == CalendarDayActivityType.slip,
+          ),
+        if (remainingCount > 0)
+          Text(
+            '+$remainingCount',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.secondaryText,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildActivityDot(Color color, {required bool isSlip}) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: isSlip
+            ? Border.all(color: AppTheme.avoidAccent, width: 1.4)
+            : null,
       ),
     );
   }
