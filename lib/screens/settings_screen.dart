@@ -118,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Enable geo reminder'),
                     subtitle: const Text(
-                      'Sends one reminder on homebase exit and one follow-up later.',
+                      'Uses OS geofence exit detection: one reminder on homebase exit and one follow-up later.',
                     ),
                     value: _config.geoReminderEnabled,
                     onChanged: (value) {

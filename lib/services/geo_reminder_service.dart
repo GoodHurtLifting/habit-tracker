@@ -1,7 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:native_geofence/native_geofence.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -18,30 +17,26 @@ class GeoReminderService {
   static const String _notificationChannelId = 'geo_avoid_habit_reminder';
   static const int _immediateNotificationId = 711001;
   static const int _followUpNotificationId = 711002;
+  static const String _homebaseGeofenceId = 'geo_homebase_exit';
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
-  StreamSubscription<Position>? _positionSubscription;
-  bool? _wasInsideHomebase;
   bool _isInitialized = false;
+  bool _notificationsInitialized = false;
+
+  @pragma('vm:entry-point')
+  static Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
+    await GeoReminderService.instance._handleGeofenceCallback(params);
+  }
 
   Future<void> initialize() async {
     if (_isInitialized) {
       return;
     }
 
-    tz.initializeTimeZones();
-
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-
-    await _notifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
-    );
+    await _ensureNotificationsInitialized();
+    await NativeGeofenceManager.instance.initialize();
 
     _isInitialized = true;
 
@@ -66,32 +61,30 @@ class GeoReminderService {
       return;
     }
 
-    final bool hasPermission = await _ensureLocationPermission();
+    final bool hasPermission = await _ensureLocationPermissionForGeofence();
     if (!hasPermission) {
       await unregisterHomebaseMonitoring();
       return;
     }
 
-    await _positionSubscription?.cancel();
-    _positionSubscription = null;
-
-    final Position initialPosition = await Geolocator.getCurrentPosition();
-    _wasInsideHomebase = _isInsideHomebase(config, initialPosition);
-
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 20,
+    await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
+    await NativeGeofenceManager.instance.createGeofence(
+      Geofence(
+        id: _homebaseGeofenceId,
+        location: Location(
+          latitude: config.homebaseLatitude!,
+          longitude: config.homebaseLongitude!,
+        ),
+        radiusMeters: config.homebaseRadiusMeters,
+        triggers: const {GeofenceEvent.exit},
+        iosSettings: const IosGeofenceSettings(initialTrigger: false),
       ),
-    ).listen((position) {
-      _handlePositionUpdate(position);
-    });
+      geofenceTriggered,
+    );
   }
 
   Future<void> unregisterHomebaseMonitoring() async {
-    await _positionSubscription?.cancel();
-    _positionSubscription = null;
-    _wasInsideHomebase = null;
+    await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
     await _notifications.cancel(_followUpNotificationId);
   }
 
@@ -110,6 +103,8 @@ class GeoReminderService {
   }
 
   Future<void> requestNotificationPermission() async {
+    await _ensureNotificationsInitialized();
+
     final androidPlugin =
         _notifications.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
@@ -119,6 +114,25 @@ class GeoReminderService {
         _notifications.resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<bool> _ensureLocationPermissionForGeofence() async {
+    final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission != LocationPermission.always) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
   }
 
   Future<bool> _ensureLocationPermission() async {
@@ -136,21 +150,40 @@ class GeoReminderService {
         permission == LocationPermission.whileInUse;
   }
 
-  bool _isInsideHomebase(GeoReminderConfig config, Position position) {
-    final double lat = config.homebaseLatitude!;
-    final double lng = config.homebaseLongitude!;
+  Future<void> _ensureNotificationsInitialized() async {
+    if (_notificationsInitialized) {
+      return;
+    }
 
-    final double distanceMeters = Geolocator.distanceBetween(
-      lat,
-      lng,
-      position.latitude,
-      position.longitude,
+    tz.initializeTimeZones();
+
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+
+    await _notifications.initialize(
+      const InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
     );
 
-    return distanceMeters <= config.homebaseRadiusMeters;
+    _notificationsInitialized = true;
   }
 
-  Future<void> _handlePositionUpdate(Position position) async {
+  Future<void> _handleGeofenceCallback(GeofenceCallbackParams params) async {
+    await _ensureNotificationsInitialized();
+
+    if (params.event != GeofenceEvent.exit) {
+      return;
+    }
+
+    final bool isOurHomebaseEvent = params.geofences.any(
+      (geofence) => geofence.id == _homebaseGeofenceId,
+    );
+    if (!isOurHomebaseEvent) {
+      return;
+    }
+
     final GeoReminderConfig config =
         await LocalPreferencesService.getGeoReminderConfig();
 
@@ -159,14 +192,7 @@ class GeoReminderService {
       return;
     }
 
-    final bool isInside = _isInsideHomebase(config, position);
-    final bool wasInside = _wasInsideHomebase ?? isInside;
-
-    if (wasInside && !isInside) {
-      await _handleExitEvent(config);
-    }
-
-    _wasInsideHomebase = isInside;
+    await _handleExitEvent(config);
   }
 
   Future<void> _handleExitEvent(GeoReminderConfig config) async {
@@ -175,10 +201,11 @@ class GeoReminderService {
     );
 
     if (habit == null || habit.type != HabitType.avoid || habit.isArchived) {
+      await unregisterHomebaseMonitoring();
       return;
     }
 
-    final ({String title, String body}) message = _buildMessage(habit);
+    final ({String title, String body}) message = buildMessage(habit);
     final NotificationDetails details = _defaultNotificationDetails();
 
     await requestNotificationPermission();
@@ -211,7 +238,7 @@ class GeoReminderService {
     );
   }
 
-  ({String title, String body}) _buildMessage(Habit habit) {
+  static ({String title, String body}) buildMessage(Habit habit) {
     final List<String> triggers = [habit.trigger1, habit.trigger2, habit.trigger3]
         .whereType<String>()
         .map((value) => value.trim())
