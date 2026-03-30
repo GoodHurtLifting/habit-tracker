@@ -305,7 +305,7 @@ const List<HabitMilestone> habitMilestones = [
     targetDays: 0,
     title: 'Make it through the day',
     expectation: 'Depression and deep need to keep the party going.',
-    benefit: '.',
+    benefit: 'Just start. Make it one day.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_1',
@@ -313,7 +313,7 @@ const List<HabitMilestone> habitMilestones = [
     targetDays: 1,
     title: 'Initial crash phase',
     expectation: 'Fatigue, low mood, irritability, and strong cravings can hit early.',
-    benefit: 'The first 48 are tough because the drugs are still working their way out of your system.',
+    benefit: 'The first 72 are tough because the drugs are still working their way out of your system.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_3',

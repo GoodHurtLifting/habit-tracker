@@ -77,7 +77,15 @@ class GeoReminderService {
         ),
         radiusMeters: config.homebaseRadiusMeters,
         triggers: const {GeofenceEvent.exit},
-        iosSettings: const IosGeofenceSettings(initialTrigger: false),
+        iosSettings: const IosGeofenceSettings(
+          initialTrigger: false,
+        ),
+        androidSettings: const AndroidGeofenceSettings(
+          initialTriggers: {},
+          expiration: Duration(days: 7),
+          loiteringDelay: Duration.zero,
+          notificationResponsiveness: Duration(minutes: 1),
+        ),
       ),
       geofenceTriggered,
     );
