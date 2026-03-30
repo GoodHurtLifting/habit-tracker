@@ -319,6 +319,23 @@ class DatabaseService {
     ''');
   }
 
+
+  Future<Habit?> getHabitById(String habitId) async {
+    final db = await database;
+    final rows = await db.query(
+      habitsTable,
+      where: 'id = ?',
+      whereArgs: [habitId],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return Habit.fromMap(rows.first);
+  }
+
   Future<List<Habit>> getHabits() async {
     final db = await database;
     final rows = await db.query(
