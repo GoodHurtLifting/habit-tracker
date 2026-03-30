@@ -5,6 +5,8 @@ enum HabitType {
 
 class Habit {
   static const Object _unset = Object();
+  static const String defaultBuildAccentColorKey = 'cool_blue';
+  static const String defaultAvoidAccentColorKey = 'warm_orange';
 
   final String id;
   final String name;
@@ -18,6 +20,7 @@ class Habit {
   final bool isArchived;
   final DateTime? archivedAt;
   final int sortOrder;
+  final String accentColorKey;
 
   const Habit({
     required this.id,
@@ -32,6 +35,7 @@ class Habit {
     this.isArchived = false,
     this.archivedAt,
     this.sortOrder = 0,
+    required this.accentColorKey,
   });
 
   Habit copyWith({
@@ -47,6 +51,7 @@ class Habit {
     bool? isArchived,
     Object? archivedAt = _unset,
     int? sortOrder,
+    String? accentColorKey,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -64,6 +69,7 @@ class Habit {
       isArchived: isArchived ?? this.isArchived,
       archivedAt: archivedAt == _unset ? this.archivedAt : archivedAt as DateTime?,
       sortOrder: sortOrder ?? this.sortOrder,
+      accentColorKey: accentColorKey ?? this.accentColorKey,
     );
   }
 
@@ -81,6 +87,7 @@ class Habit {
       'is_archived': isArchived ? 1 : 0,
       'archived_at': archivedAt?.toIso8601String(),
       'sort_order': sortOrder,
+      'accent_color_key': accentColorKey,
     };
   }
 
@@ -107,6 +114,10 @@ class Habit {
           ? null
           : DateTime.parse(map['archived_at'] as String),
       sortOrder: map['sort_order'] as int? ?? 0,
+      accentColorKey: (map['accent_color_key'] as String?) ??
+          (map['type'] == HabitType.avoid.name
+              ? defaultAvoidAccentColorKey
+              : defaultBuildAccentColorKey),
     );
   }
 }

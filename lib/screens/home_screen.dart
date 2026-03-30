@@ -10,6 +10,7 @@ import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../utils/date_formatter.dart';
+import '../utils/habit_color_utils.dart';
 import '../utils/date_rules.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/habit_card.dart';
@@ -185,7 +186,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     habit.sortOrder > currentMax ? habit.sortOrder : currentMax,
               ) +
           1;
-      final Habit habitToInsert = newHabit.copyWith(sortOrder: nextSortOrder);
+      final String accentColorKey = HabitColorUtils.accentColorKeyForNewHabit(
+        type: newHabit.type,
+        existingHabits: habits,
+      );
+      final Habit habitToInsert = newHabit.copyWith(
+        sortOrder: nextSortOrder,
+        accentColorKey: accentColorKey,
+      );
       await _databaseService.insertHabit(habitToInsert);
 
       if (!mounted) {
