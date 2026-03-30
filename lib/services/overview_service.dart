@@ -98,17 +98,34 @@ class OverviewService {
 
     final Map<DateTime, Set<String>> goalsByDay = {};
     final Map<DateTime, Set<String>> slipsByDay = {};
+    final Map<DateTime, List<CalendarDayActivityMarker>> markersByDay = {};
 
     for (final log in logs) {
       final DateTime day = DateTime(log.date.year, log.date.month, log.date.day);
       final Habit? habit = habitsById[log.habitId];
       final String habitName = habit?.name ?? 'Unknown habit';
+      final String accentColorKey =
+          habit?.accentColorKey ??
+              (habit?.type == HabitType.avoid
+                  ? Habit.defaultAvoidAccentColorKey
+                  : Habit.defaultBuildAccentColorKey);
 
       if (log.status == HabitLogStatus.success) {
         goalsByDay.putIfAbsent(day, () => <String>{}).add(habitName);
       } else {
         slipsByDay.putIfAbsent(day, () => <String>{}).add(habitName);
       }
+
+      markersByDay.putIfAbsent(day, () => <CalendarDayActivityMarker>[]).add(
+        CalendarDayActivityMarker(
+          habitId: log.habitId,
+          habitName: habitName,
+          accentColorKey: accentColorKey,
+          type: log.status == HabitLogStatus.success
+              ? CalendarDayActivityType.success
+              : CalendarDayActivityType.slip,
+        ),
+      );
     }
 
     final DateTime normalizedMonth = DateFormatter.normalize(monthStart);
@@ -149,6 +166,16 @@ class OverviewService {
           if (habit.type == HabitType.avoid) {
             // Past unlogged avoid day counts as a slip.
             slipNames.add(habit.name);
+            markersByDay
+                .putIfAbsent(day, () => <CalendarDayActivityMarker>[])
+                .add(
+              CalendarDayActivityMarker(
+                habitId: habit.id,
+                habitName: habit.name,
+                accentColorKey: habit.accentColorKey,
+                type: CalendarDayActivityType.slip,
+              ),
+            );
           } else {
             // Build habit past unlogged stays a gray missed opportunity.
             hasMissedOpportunity = true;
@@ -158,11 +185,15 @@ class OverviewService {
 
       final List<String> slips = slipNames.toList()..sort();
       final bool hasActivity = goalHits.isNotEmpty || slips.isNotEmpty;
+      final List<CalendarDayActivityMarker> markers = [
+        ...(markersByDay[day] ?? <CalendarDayActivityMarker>[]),
+      ]..sort((a, b) => a.habitName.compareTo(b.habitName));
 
       summaries[day] = CalendarDaySummary(
         date: day,
         goalHitHabitNames: goalHits,
         slipHabitNames: slips,
+        activityMarkers: markers,
         hasMissedOpportunity: !hasActivity && hasMissedOpportunity,
       );
     }
