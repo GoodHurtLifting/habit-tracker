@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'app_theme.dart';
 import 'screens/home_screen.dart';
+import 'services/geo_reminder_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GeoReminderService.instance.initialize();
   runApp(const HabitTrackerApp());
 }
 

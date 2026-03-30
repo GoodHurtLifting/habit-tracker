@@ -26,6 +26,15 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Habit Tracker uses your location to detect when you leave your selected homebase and send your avoid-habit reminder.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Habit Tracker uses background location to monitor homebase exit reminders for your selected avoid habit.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
