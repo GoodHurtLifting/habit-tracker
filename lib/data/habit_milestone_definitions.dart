@@ -311,9 +311,9 @@ const List<HabitMilestone> habitMilestones = [
     id: 'quit_cocaine_day_1',
     trackId: HabitMilestoneTracks.quitCocaine,
     targetDays: 1,
-    title: 'Initial crash phase',
-    expectation: 'Fatigue, low mood, irritability, and strong cravings can hit early.',
-    benefit: 'The first 72 are tough because the drugs are still working their way out of your system.',
+    title: '72 hr crash',
+    expectation: 'Congestion, fatigue, low mood, irritability, and strong cravings can hit early.',
+    benefit: 'The drugs are working their way out of your system.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_3',
@@ -321,7 +321,7 @@ const List<HabitMilestone> habitMilestones = [
     targetDays: 3,
     title: 'Beginning Phase 2',
     expectation: 'Psychological battle is changing. Beginning to feel like your decisions were not so bad.',
-    benefit: 'The first 48 are tough because the drugs are still working their way out of your system.',
+    benefit: 'Cocaine has left your body. You can begin to heal.',
   ),
   HabitMilestone(
     id: 'quit_cocaine_day_4',
