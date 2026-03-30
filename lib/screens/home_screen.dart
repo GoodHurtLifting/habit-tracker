@@ -8,6 +8,7 @@ import '../models/habit_milestone.dart';
 import '../models/weekly_summary.dart';
 import '../services/database_service.dart';
 import '../services/habit_stats_service.dart';
+import '../services/local_preferences_service.dart';
 import '../services/weekly_summary_service.dart';
 import '../utils/date_formatter.dart';
 import '../utils/habit_color_utils.dart';
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Habit> habits = [];
   List<HabitLog> logs = [];
   WeeklySummary? _mostRecentWeeklySummary;
+  String? _lastSeenWeeklySummaryId;
   bool _isLoading = true;
   final Set<String> _expandedHabitIds = <String>{};
 
@@ -48,6 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final loadedLogs = await _databaseService.getHabitLogs();
     final mostRecentWeeklySummary =
         await _weeklySummaryService.getMostRecentWeeklySummary();
+    final String? lastSeenWeeklySummaryId =
+        await LocalPreferencesService.getLastSeenWeeklySummaryId();
 
     if (!mounted) {
       return;
@@ -57,7 +61,34 @@ class _HomeScreenState extends State<HomeScreen> {
       habits = loadedHabits;
       logs = loadedLogs;
       _mostRecentWeeklySummary = mostRecentWeeklySummary;
+      _lastSeenWeeklySummaryId = lastSeenWeeklySummaryId;
       _isLoading = false;
+    });
+  }
+
+  bool get _shouldShowWeeklySummary {
+    final WeeklySummary? summary = _mostRecentWeeklySummary;
+    if (summary == null) {
+      return false;
+    }
+
+    return summary.id != _lastSeenWeeklySummaryId;
+  }
+
+  Future<void> _dismissWeeklySummary() async {
+    final WeeklySummary? summary = _mostRecentWeeklySummary;
+    if (summary == null) {
+      return;
+    }
+
+    await LocalPreferencesService.setLastSeenWeeklySummaryId(summary.id);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _lastSeenWeeklySummaryId = summary.id;
     });
   }
 
@@ -592,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWeeklySummarySection() {
-    if (_mostRecentWeeklySummary == null) {
+    if (!_shouldShowWeeklySummary) {
       final liveSummary = _getLiveDailySummary();
       final DateTime today = DateRules.normalizeDate(DateTime.now());
 
@@ -634,6 +665,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final WeeklySummary summary = _mostRecentWeeklySummary!;
+
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: Padding(
@@ -641,15 +674,37 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Weekly Summary',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Weekly Summary',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _dismissWeeklySummary,
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 18,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minHeight: 24,
+                    minWidth: 24,
+                  ),
+                  tooltip: 'Dismiss weekly summary',
+                  icon: Icon(
+                    Icons.close,
+                    color: AppTheme.secondaryText,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 2),
             Text(
-              'Week of ${DateFormatter.weekRange(_mostRecentWeeklySummary!.weekStartDate, _mostRecentWeeklySummary!.weekEndDate)}',
+              'Week of ${DateFormatter.weekRange(summary.weekStartDate, summary.weekEndDate)}',
               style: TextStyle(
                 color: AppTheme.secondaryText,
                 fontSize: 12,
@@ -662,19 +717,23 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildSummaryStat(
                   'Goal hits',
-                  _mostRecentWeeklySummary!.totalGoalHits,
+                  summary.totalGoalHits,
+                  valueColor: AppTheme.buildAccent,
                 ),
                 _buildSummaryStat(
                   'Slips',
-                  _mostRecentWeeklySummary!.totalSlips,
+                  summary.totalSlips,
+                  valueColor: AppTheme.avoidAccent,
                 ),
                 _buildSummaryStat(
                   'Logged days',
-                  _mostRecentWeeklySummary!.totalLoggedDays,
+                  summary.totalLoggedDays,
+                  valueColor: AppTheme.buildAccent,
                 ),
                 _buildSummaryStat(
                   'Habits touched',
-                  _mostRecentWeeklySummary!.totalLoggedHabits,
+                  summary.totalLoggedHabits,
+                  valueColor: AppTheme.primaryText,
                 ),
               ],
             ),
@@ -684,7 +743,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummaryStat(String label, int value) {
+  Widget _buildSummaryStat(
+    String label,
+    int value, {
+    Color? valueColor,
+  }) {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppTheme.metaText.withValues(alpha: 0.14),
@@ -705,8 +768,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               TextSpan(
                 text: '$value',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
+                  color: valueColor,
                 ),
               ),
             ],
