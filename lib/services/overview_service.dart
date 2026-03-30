@@ -98,6 +98,7 @@ class OverviewService {
 
     final Map<DateTime, Set<String>> goalsByDay = {};
     final Map<DateTime, Set<String>> slipsByDay = {};
+    final Map<DateTime, Set<String>> explicitLogHabitIdsByDay = {};
     final Map<DateTime, List<CalendarDayActivityMarker>> markersByDay = {};
 
     for (final log in logs) {
@@ -115,6 +116,7 @@ class OverviewService {
       } else {
         slipsByDay.putIfAbsent(day, () => <String>{}).add(habitName);
       }
+      explicitLogHabitIdsByDay.putIfAbsent(day, () => <String>{}).add(log.habitId);
 
       markersByDay.putIfAbsent(day, () => <CalendarDayActivityMarker>[]).add(
         CalendarDayActivityMarker(
@@ -159,7 +161,7 @@ class OverviewService {
           }
 
           final bool alreadyHasExplicitLog =
-              goalHits.contains(habit.name) || slipNames.contains(habit.name);
+              explicitLogHabitIdsByDay[day]?.contains(habit.id) ?? false;
 
           if (alreadyHasExplicitLog) {
             continue;
