@@ -17,6 +17,7 @@ class Habit {
   final DateTime? resumedAt;
   final bool isArchived;
   final DateTime? archivedAt;
+  final int sortOrder;
 
   const Habit({
     required this.id,
@@ -30,6 +31,7 @@ class Habit {
     this.resumedAt,
     this.isArchived = false,
     this.archivedAt,
+    this.sortOrder = 0,
   });
 
   Habit copyWith({
@@ -44,6 +46,7 @@ class Habit {
     Object? resumedAt = _unset,
     bool? isArchived,
     Object? archivedAt = _unset,
+    int? sortOrder,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -60,6 +63,7 @@ class Habit {
       resumedAt: resumedAt == _unset ? this.resumedAt : resumedAt as DateTime?,
       isArchived: isArchived ?? this.isArchived,
       archivedAt: archivedAt == _unset ? this.archivedAt : archivedAt as DateTime?,
+      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 
@@ -76,6 +80,7 @@ class Habit {
       'resumed_at': resumedAt?.toIso8601String(),
       'is_archived': isArchived ? 1 : 0,
       'archived_at': archivedAt?.toIso8601String(),
+      'sort_order': sortOrder,
     };
   }
 
@@ -101,6 +106,7 @@ class Habit {
       archivedAt: map['archived_at'] == null
           ? null
           : DateTime.parse(map['archived_at'] as String),
+      sortOrder: map['sort_order'] as int? ?? 0,
     );
   }
 }
