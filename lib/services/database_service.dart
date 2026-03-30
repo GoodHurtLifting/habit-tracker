@@ -12,7 +12,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   static const String _databaseName = 'habit_tracker.db';
-  static const int _databaseVersion = 8;
+  static const int _databaseVersion = 9;
 
   static const String habitsTable = 'habits';
   static const String habitLogsTable = 'habit_logs';
@@ -243,7 +243,18 @@ class DatabaseService {
             );
           }
         }
+
+        if (oldVersion < 9) {
+          await _deleteOrphanHabitLogs(db);
+        }
       },
+    );
+  }
+
+  Future<void> _deleteOrphanHabitLogs(Database db) async {
+    await db.delete(
+      habitLogsTable,
+      where: 'habit_id NOT IN (SELECT id FROM $habitsTable)',
     );
   }
 
@@ -469,11 +480,19 @@ class DatabaseService {
 
   Future<void> deleteHabit(String habitId) async {
     final db = await database;
-    await db.delete(
-      habitsTable,
-      where: 'id = ?',
-      whereArgs: [habitId],
-    );
+    await db.transaction((txn) async {
+      await txn.delete(
+        habitLogsTable,
+        where: 'habit_id = ?',
+        whereArgs: [habitId],
+      );
+
+      await txn.delete(
+        habitsTable,
+        where: 'id = ?',
+        whereArgs: [habitId],
+      );
+    });
   }
 
   Future<void> pauseHabit(String habitId, DateTime now) async {
