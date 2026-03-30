@@ -372,6 +372,40 @@ class _HomeScreenState extends State<HomeScreen> {
     return null;
   }
 
+  ({int doneToday, int buildLeft, int avoidLeft, int activeToday})
+      _getLiveDailySummary() {
+    final DateTime today = DateRules.normalizeDate(DateTime.now());
+    int doneToday = 0;
+    int buildLeft = 0;
+    int avoidLeft = 0;
+    int activeToday = 0;
+
+    for (final Habit habit in habits) {
+      if (!HabitStatsService.canLogHabitForDate(habit, today)) {
+        continue;
+      }
+
+      activeToday++;
+      final HabitLog? todayLog = _getHabitLogForDay(habit.id, today);
+      final bool isSuccess = todayLog?.status == HabitLogStatus.success;
+
+      if (isSuccess) {
+        doneToday++;
+      } else if (habit.type == HabitType.build) {
+        buildLeft++;
+      } else {
+        avoidLeft++;
+      }
+    }
+
+    return (
+      doneToday: doneToday,
+      buildLeft: buildLeft,
+      avoidLeft: avoidLeft,
+      activeToday: activeToday,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -417,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: 'Add your first habit to start tracking.',
             )
           : ListView(
-              padding: const EdgeInsets.only(bottom: 96),
+              padding: const EdgeInsets.only(bottom: 120),
               children: [
                 _buildWeeklySummarySection(),
                 if (activeHabits.isEmpty && pausedHabits.isNotEmpty)
@@ -445,14 +479,42 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildWeeklySummarySection() {
     if (_mostRecentWeeklySummary == null) {
+      final liveSummary = _getLiveDailySummary();
+      final DateTime today = DateRules.normalizeDate(DateTime.now());
+
       return Card(
         margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-        child: const Padding(
-          padding: EdgeInsets.all(12),
-          child: AppEmptyState(
-            title: 'No weekly summary yet',
-            subtitle: 'Complete a week to see your progress.',
-            compact: true,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Today',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                DateFormatter.weekdayMonthDay(today),
+                style: TextStyle(
+                  color: AppTheme.secondaryText,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  _buildSummaryStat('Done today', liveSummary.doneToday),
+                  _buildSummaryStat('Build left', liveSummary.buildLeft),
+                  _buildSummaryStat('Avoid left', liveSummary.avoidLeft),
+                  _buildSummaryStat('Active today', liveSummary.activeToday),
+                ],
+              ),
+            ],
           ),
         ),
       );
