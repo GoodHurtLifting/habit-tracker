@@ -139,8 +139,7 @@ class GeoReminderService {
       permission = await Geolocator.requestPermission();
     }
 
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
+    return permission == LocationPermission.always;
   }
 
   Future<bool> _ensureLocationPermission() async {
