@@ -30,6 +30,7 @@ class GeoReminderService {
     await GeoReminderService.instance._handleGeofenceCallback(params);
   }
 
+
   Future<void> initialize() async {
     if (_isInitialized) {
       return;
@@ -45,9 +46,18 @@ class GeoReminderService {
 
   Future<void> refreshMonitoringFromPreferences() async {
     final GeoReminderConfig config =
-        await LocalPreferencesService.getGeoReminderConfig();
+    await LocalPreferencesService.getGeoReminderConfig();
+
+    print('Geo config loaded: '
+        'enabled=${config.geoReminderEnabled}, '
+        'lat=${config.homebaseLatitude}, '
+        'lng=${config.homebaseLongitude}, '
+        'radius=${config.homebaseRadiusMeters}, '
+        'habit=${config.protectedAvoidHabitId}, '
+        'complete=${config.isCompleteForMonitoring}');
 
     if (!config.isCompleteForMonitoring) {
+      print('Geo monitoring not started: config incomplete');
       await unregisterHomebaseMonitoring();
       return;
     }
@@ -57,38 +67,70 @@ class GeoReminderService {
     );
 
     if (habit == null || habit.type != HabitType.avoid || habit.isArchived) {
+      print('Geo monitoring not started: selected habit invalid '
+          '(habitNull=${habit == null}, '
+          'isAvoid=${habit?.type == HabitType.avoid}, '
+          'isArchived=${habit?.isArchived})');
       await unregisterHomebaseMonitoring();
       return;
     }
 
     final bool hasPermission = await _ensureLocationPermissionForGeofence();
     if (!hasPermission) {
+      print('Geo monitoring not started: background location permission not granted');
       await unregisterHomebaseMonitoring();
       return;
     }
 
-    await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
-    await NativeGeofenceManager.instance.createGeofence(
-      Geofence(
-        id: _homebaseGeofenceId,
-        location: Location(
-          latitude: config.homebaseLatitude!,
-          longitude: config.homebaseLongitude!,
+    try {
+      print('Removing any existing homebase geofence: $_homebaseGeofenceId');
+      await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
+
+      print('Registering geofence: '
+          'id=$_homebaseGeofenceId, '
+          'lat=${config.homebaseLatitude}, '
+          'lng=${config.homebaseLongitude}, '
+          'radius=${config.homebaseRadiusMeters}');
+
+      await NativeGeofenceManager.instance.createGeofence(
+        Geofence(
+          id: _homebaseGeofenceId,
+          location: Location(
+            latitude: config.homebaseLatitude!,
+            longitude: config.homebaseLongitude!,
+          ),
+          radiusMeters: config.homebaseRadiusMeters,
+          triggers: const {GeofenceEvent.enter, GeofenceEvent.exit},
+          iosSettings: const IosGeofenceSettings(
+            initialTrigger: false,
+          ),
+          androidSettings: const AndroidGeofenceSettings(
+            initialTriggers: {GeofenceEvent.enter},
+            expiration: Duration(days: 7),
+            loiteringDelay: Duration.zero,
+            notificationResponsiveness: Duration(minutes: 1),
+          ),
         ),
-        radiusMeters: config.homebaseRadiusMeters,
-        triggers: const {GeofenceEvent.exit},
-        iosSettings: const IosGeofenceSettings(
-          initialTrigger: false,
-        ),
-        androidSettings: const AndroidGeofenceSettings(
-          initialTriggers: {},
-          expiration: Duration(days: 7),
-          loiteringDelay: Duration.zero,
-          notificationResponsiveness: Duration(minutes: 1),
-        ),
-      ),
-      geofenceTriggered,
-    );
+        geofenceTriggered,
+      );
+
+      final List<ActiveGeofence> registeredGeofences =
+      await NativeGeofenceManager.instance.getRegisteredGeofences();
+
+      print('Geofence registration complete. '
+          'Registered geofences count=${registeredGeofences.length}');
+      for (final geofence in registeredGeofences) {
+        print('Registered geofence id=${geofence.id}');
+      }
+    } on NativeGeofenceException catch (e) {
+      print('Geofence registration failed: '
+          'code=${e.code}, message=${e.message}');
+      await unregisterHomebaseMonitoring();
+    } catch (e, stackTrace) {
+      print('Unexpected geofence registration error: $e');
+      print(stackTrace);
+      await unregisterHomebaseMonitoring();
+    }
   }
 
   Future<void> unregisterHomebaseMonitoring() async {
@@ -127,19 +169,27 @@ class GeoReminderService {
   Future<bool> _ensureLocationPermissionForGeofence() async {
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      print('Location services are disabled');
       return false;
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
+    print('Initial location permission: $permission');
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      print('Location permission after request: $permission');
     }
 
     if (permission != LocationPermission.always) {
       permission = await Geolocator.requestPermission();
+      print('Location permission after always-request attempt: $permission');
     }
 
-    return permission == LocationPermission.always;
+    final bool granted = permission == LocationPermission.always;
+    print('Background geofence permission granted=$granted');
+
+    return granted;
   }
 
   Future<bool> _ensureLocationPermission() async {
@@ -180,6 +230,14 @@ class GeoReminderService {
   Future<void> _handleGeofenceCallback(GeofenceCallbackParams params) async {
     await _ensureNotificationsInitialized();
 
+    print('Geofence callback fired: '
+        'event=${params.event}, geofenceCount=${params.geofences.length}');
+
+    if (params.event == GeofenceEvent.enter) {
+      print('Homebase enter event confirmed');
+      return;
+    }
+
     if (params.event != GeofenceEvent.exit) {
       return;
     }
@@ -190,6 +248,8 @@ class GeoReminderService {
     if (!isOurHomebaseEvent) {
       return;
     }
+
+    print('Homebase exit event confirmed');
 
     final GeoReminderConfig config =
         await LocalPreferencesService.getGeoReminderConfig();
@@ -217,6 +277,8 @@ class GeoReminderService {
 
     await requestNotificationPermission();
 
+    print('Sending immediate geo reminder notification');
+
     await _notifications.show(
       _immediateNotificationId,
       message.title,
@@ -228,6 +290,9 @@ class GeoReminderService {
     if (!config.followUpReminderEnabled) {
       return;
     }
+
+    print('Scheduling follow-up reminder in '
+        '${config.followUpReminderDelayMinutes} minutes');
 
     final tz.TZDateTime scheduledTime = tz.TZDateTime.now(tz.local).add(
       Duration(minutes: config.followUpReminderDelayMinutes),
