@@ -9,6 +9,11 @@ import '../models/habit.dart';
 import 'database_service.dart';
 import 'local_preferences_service.dart';
 
+@pragma('vm:entry-point')
+Future<void> geoReminderGeofenceTriggered(GeofenceCallbackParams params) async {
+  await GeoReminderService.instance.handleGeofenceCallback(params);
+}
+
 class GeoReminderService {
   GeoReminderService._();
 
@@ -24,12 +29,6 @@ class GeoReminderService {
 
   bool _isInitialized = false;
   bool _notificationsInitialized = false;
-
-  @pragma('vm:entry-point')
-  static Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
-    await GeoReminderService.instance._handleGeofenceCallback(params);
-  }
-
 
   Future<void> initialize() async {
     if (_isInitialized) {
@@ -111,7 +110,7 @@ class GeoReminderService {
             notificationResponsiveness: Duration(minutes: 1),
           ),
         ),
-        geofenceTriggered,
+        geoReminderGeofenceTriggered,
       );
 
       final List<ActiveGeofence> registeredGeofences =
@@ -227,7 +226,7 @@ class GeoReminderService {
     _notificationsInitialized = true;
   }
 
-  Future<void> _handleGeofenceCallback(GeofenceCallbackParams params) async {
+  Future<void> handleGeofenceCallback(GeofenceCallbackParams params) async {
     await _ensureNotificationsInitialized();
 
     print('Geofence callback fired: '
