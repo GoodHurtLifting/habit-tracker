@@ -14,6 +14,8 @@ class LocalPreferencesService {
   static const String _followUpReminderEnabledKey = 'geo_followup_enabled';
   static const String _followUpReminderDelayMinutesKey =
       'geo_followup_delay_minutes';
+  static const String _geoDebugLogKey = 'geo_debug_log';
+  static const int _geoDebugLogMaxEntries = 30;
 
   static Future<String?> getLastSeenWeeklySummaryId() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -75,5 +77,33 @@ class LocalPreferencesService {
       _followUpReminderDelayMinutesKey,
       config.followUpReminderDelayMinutes,
     );
+  }
+
+  static Future<List<String>> getGeoDebugLog() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_geoDebugLogKey) ?? <String>[];
+  }
+
+  static Future<void> appendGeoDebugLog(String message) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> existingEntries =
+        prefs.getStringList(_geoDebugLogKey) ?? <String>[];
+
+    final String timestamp = DateTime.now().toIso8601String();
+    existingEntries.add('[$timestamp] $message');
+
+    if (existingEntries.length > _geoDebugLogMaxEntries) {
+      existingEntries.removeRange(
+        0,
+        existingEntries.length - _geoDebugLogMaxEntries,
+      );
+    }
+
+    await prefs.setStringList(_geoDebugLogKey, existingEntries);
+  }
+
+  static Future<void> clearGeoDebugLog() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_geoDebugLogKey);
   }
 }
