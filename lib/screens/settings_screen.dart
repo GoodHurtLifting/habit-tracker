@@ -19,6 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   GeoReminderConfig _config = const GeoReminderConfig.defaults();
   List<Habit> _avoidHabits = const [];
+  List<String> _geoDebugLog = const [];
   bool _isLoading = true;
 
   static const List<double> _radiusOptions = [100, 200, 300];
@@ -33,6 +34,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final GeoReminderConfig config =
         await LocalPreferencesService.getGeoReminderConfig();
     final List<Habit> habits = await _databaseService.getHabits();
+    final List<String> geoDebugLog =
+        await LocalPreferencesService.getGeoDebugLog();
 
     if (!mounted) {
       return;
@@ -43,8 +46,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _avoidHabits = habits
           .where((habit) => habit.type == HabitType.avoid && !habit.isArchived)
           .toList();
+      _geoDebugLog = geoDebugLog.reversed.toList();
       _isLoading = false;
     });
+  }
+
+  Future<void> _refreshGeoDebugLog() async {
+    final List<String> geoDebugLog =
+        await LocalPreferencesService.getGeoDebugLog();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _geoDebugLog = geoDebugLog.reversed.toList();
+    });
+  }
+
+  Future<void> _sendTestNotification() async {
+    await _geoReminderService.sendTestNotification();
+    await _refreshGeoDebugLog();
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Test notification sent.')),
+    );
+  }
+
+  Future<void> _clearGeoDebugLog() async {
+    await LocalPreferencesService.clearGeoDebugLog();
+    await _refreshGeoDebugLog();
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Geo debug log cleared.')),
+    );
   }
 
   Future<void> _updateConfig(GeoReminderConfig newConfig) async {
@@ -208,6 +250,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const _RuleText(
                     'Background location/notification delivery can vary by OS power settings.',
                   ),
+                  const SizedBox(height: 16),
+                  const _SectionTitle('Geo debug'),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _sendTestNotification,
+                        child: const Text('Send test notification'),
+                      ),
+                      OutlinedButton(
+                        onPressed: _clearGeoDebugLog,
+                        child: const Text('Clear log'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_geoDebugLog.isEmpty)
+                    const _RuleText('No geo debug events yet.')
+                  else
+                    ..._geoDebugLog.map(
+                      (entry) => _RuleText('• $entry'),
+                    ),
                   const SizedBox(height: 16),
                   const _SectionTitle('Habit rules'),
                   const _RuleText('• Build habits count only when logged.'),

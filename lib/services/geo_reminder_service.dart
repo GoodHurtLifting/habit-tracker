@@ -45,9 +45,9 @@ class GeoReminderService {
 
   Future<void> refreshMonitoringFromPreferences() async {
     final GeoReminderConfig config =
-    await LocalPreferencesService.getGeoReminderConfig();
+        await LocalPreferencesService.getGeoReminderConfig();
 
-    print('Geo config loaded: '
+    await _debugLog('Geo config loaded: '
         'enabled=${config.geoReminderEnabled}, '
         'lat=${config.homebaseLatitude}, '
         'lng=${config.homebaseLongitude}, '
@@ -56,7 +56,7 @@ class GeoReminderService {
         'complete=${config.isCompleteForMonitoring}');
 
     if (!config.isCompleteForMonitoring) {
-      print('Geo monitoring not started: config incomplete');
+      await _debugLog('Geo monitoring not started: config incomplete');
       await unregisterHomebaseMonitoring();
       return;
     }
@@ -66,7 +66,7 @@ class GeoReminderService {
     );
 
     if (habit == null || habit.type != HabitType.avoid || habit.isArchived) {
-      print('Geo monitoring not started: selected habit invalid '
+      await _debugLog('Geo monitoring not started: selected habit invalid '
           '(habitNull=${habit == null}, '
           'isAvoid=${habit?.type == HabitType.avoid}, '
           'isArchived=${habit?.isArchived})');
@@ -76,16 +76,18 @@ class GeoReminderService {
 
     final bool hasPermission = await _ensureLocationPermissionForGeofence();
     if (!hasPermission) {
-      print('Geo monitoring not started: background location permission not granted');
+      await _debugLog(
+        'Geo monitoring not started: background location permission not granted',
+      );
       await unregisterHomebaseMonitoring();
       return;
     }
 
     try {
-      print('Removing any existing homebase geofence: $_homebaseGeofenceId');
+      await _debugLog('Geofence registration started');
       await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
 
-      print('Registering geofence: '
+      await _debugLog('Registering geofence: '
           'id=$_homebaseGeofenceId, '
           'lat=${config.homebaseLatitude}, '
           'lng=${config.homebaseLongitude}, '
@@ -114,19 +116,19 @@ class GeoReminderService {
       );
 
       final List<ActiveGeofence> registeredGeofences =
-      await NativeGeofenceManager.instance.getRegisteredGeofences();
+          await NativeGeofenceManager.instance.getRegisteredGeofences();
 
-      print('Geofence registration complete. '
+      await _debugLog('Geofence registration succeeded. '
           'Registered geofences count=${registeredGeofences.length}');
       for (final geofence in registeredGeofences) {
-        print('Registered geofence id=${geofence.id}');
+        await _debugLog('Registered geofence id=${geofence.id}');
       }
     } on NativeGeofenceException catch (e) {
-      print('Geofence registration failed: '
+      await _debugLog('Geofence registration failed: '
           'code=${e.code}, message=${e.message}');
       await unregisterHomebaseMonitoring();
     } catch (e, stackTrace) {
-      print('Unexpected geofence registration error: $e');
+      await _debugLog('Unexpected geofence registration error: $e');
       print(stackTrace);
       await unregisterHomebaseMonitoring();
     }
@@ -135,6 +137,7 @@ class GeoReminderService {
   Future<void> unregisterHomebaseMonitoring() async {
     await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
     await _notifications.cancel(_followUpNotificationId);
+    await _debugLog('Monitoring unregistered');
   }
 
   Future<Position?> captureCurrentLocationForHomebase() async {
@@ -165,28 +168,44 @@ class GeoReminderService {
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
+  Future<void> sendTestNotification() async {
+    await _ensureNotificationsInitialized();
+    await requestNotificationPermission();
+
+    await _notifications.show(
+      _immediateNotificationId,
+      'Geo test notification',
+      'If you see this, local notifications are working.',
+      _defaultNotificationDetails(),
+    );
+
+    await _debugLog('Manual test notification sent');
+  }
+
   Future<bool> _ensureLocationPermissionForGeofence() async {
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print('Location services are disabled');
+      await _debugLog('Location services are disabled');
       return false;
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
-    print('Initial location permission: $permission');
+    await _debugLog('Initial location permission: $permission');
 
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      print('Location permission after request: $permission');
+      await _debugLog('Location permission after request: $permission');
     }
 
     if (permission != LocationPermission.always) {
       permission = await Geolocator.requestPermission();
-      print('Location permission after always-request attempt: $permission');
+      await _debugLog(
+        'Location permission after always-request attempt: $permission',
+      );
     }
 
     final bool granted = permission == LocationPermission.always;
-    print('Background geofence permission granted=$granted');
+    await _debugLog('Background geofence permission granted=$granted');
 
     return granted;
   }
@@ -229,11 +248,11 @@ class GeoReminderService {
   Future<void> handleGeofenceCallback(GeofenceCallbackParams params) async {
     await _ensureNotificationsInitialized();
 
-    print('Geofence callback fired: '
+    await _debugLog('Geofence callback fired: '
         'event=${params.event}, geofenceCount=${params.geofences.length}');
 
     if (params.event == GeofenceEvent.enter) {
-      print('Homebase enter event confirmed');
+      await _debugLog('Homebase enter event confirmed');
       return;
     }
 
@@ -248,12 +267,13 @@ class GeoReminderService {
       return;
     }
 
-    print('Homebase exit event confirmed');
+    await _debugLog('Homebase exit event confirmed');
 
     final GeoReminderConfig config =
         await LocalPreferencesService.getGeoReminderConfig();
 
     if (!config.isCompleteForMonitoring) {
+      await _debugLog('Monitoring skipped: config incomplete on callback');
       await unregisterHomebaseMonitoring();
       return;
     }
@@ -267,6 +287,7 @@ class GeoReminderService {
     );
 
     if (habit == null || habit.type != HabitType.avoid || habit.isArchived) {
+      await _debugLog('Invalid selected habit on exit callback');
       await unregisterHomebaseMonitoring();
       return;
     }
@@ -276,7 +297,7 @@ class GeoReminderService {
 
     await requestNotificationPermission();
 
-    print('Sending immediate geo reminder notification');
+    await _debugLog('Immediate notification send attempted');
 
     await _notifications.show(
       _immediateNotificationId,
@@ -290,7 +311,7 @@ class GeoReminderService {
       return;
     }
 
-    print('Scheduling follow-up reminder in '
+    await _debugLog('Follow-up scheduled in '
         '${config.followUpReminderDelayMinutes} minutes');
 
     final tz.TZDateTime scheduledTime = tz.TZDateTime.now(tz.local).add(
@@ -351,5 +372,10 @@ class GeoReminderService {
       ),
       iOS: DarwinNotificationDetails(),
     );
+  }
+
+  Future<void> _debugLog(String message) async {
+    print(message);
+    await LocalPreferencesService.appendGeoDebugLog(message);
   }
 }
