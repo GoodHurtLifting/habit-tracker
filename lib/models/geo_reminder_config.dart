@@ -21,7 +21,7 @@ class GeoReminderConfig {
       : geoReminderEnabled = false,
         homebaseLatitude = null,
         homebaseLongitude = null,
-        homebaseRadiusMeters = 200,
+        homebaseRadiusMeters = 400,
         protectedAvoidHabitId = null,
         followUpReminderEnabled = true,
         followUpReminderDelayMinutes = 60;

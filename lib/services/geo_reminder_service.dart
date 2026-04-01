@@ -13,7 +13,7 @@ import 'local_preferences_service.dart';
 Future<void> geoReminderGeofenceTriggered(GeofenceCallbackParams params) async {
   await GeoReminderService.instance.handleGeofenceCallback(params);
 }
-
+@pragma('vm:entry-point')
 class GeoReminderService {
   GeoReminderService._();
 
