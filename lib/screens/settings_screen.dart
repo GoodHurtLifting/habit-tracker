@@ -145,15 +145,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const _SectionTitle('Logging rules'),
-                  const _RuleText('• Weeks run Monday through Sunday.'),
-                  const _RuleText('• You can log for the current week only.'),
-                  const _RuleText(
-                    '• The previous week locks at midnight between Sunday and Monday.',
-                  ),
+                  const _RuleText('• Past and present dates can be logged and edited.'),
+                  const _RuleText('• Future dates cannot be logged.'),
                   const _RuleText(
                     '• Weekly summaries appear the first time you open the app on Monday.',
                   ),
-                  const _RuleText('• Future dates cannot be logged.'),
                   const SizedBox(height: 16),
                   const _SectionTitle('Avoid-habit geo reminder'),
                   SwitchListTile(

@@ -107,10 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final DateTime today = DateRules.normalizeDate(DateTime.now());
-    final DateTime weekStart = DateRules.startOfWeekMonday(today);
-    final bool isWeekLocked = await _weeklySummaryService.isWeekLocked(weekStart);
 
-    if (!DateRules.canEditDate(today) || isWeekLocked) {
+    if (!DateRules.canEditDate(today)) {
       return;
     }
 

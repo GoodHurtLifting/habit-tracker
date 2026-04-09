@@ -157,8 +157,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
                             ) ??
                             false;
                         final bool isFutureDay = day.isAfter(todayDateOnly);
-                        final bool isEditableDay = _overviewService.canEditDate(day);
-                        final bool isLockedDay = !isFutureDay && !isEditableDay;
 
                         return InkWell(
                           onTap: !isFutureDay ? () => _showDayLogSheet(day) : null,
@@ -167,7 +165,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(color: AppTheme.divider),
                               borderRadius: BorderRadius.circular(8),
-                              color: isFutureDay || isLockedDay
+                              color: isFutureDay
                                   ? AppTheme.metaText.withValues(alpha: 0.14)
                                   : hasVisibleActivity
                                   ? AppTheme.buildAccent.withValues(alpha: 0.14)
@@ -187,7 +185,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                                     fontWeight: hasVisibleActivity
                                         ? FontWeight.w700
                                         : FontWeight.w400,
-                                    color: isFutureDay || isLockedDay
+                                    color: isFutureDay
                                         ? AppTheme.metaText
                                         : null,
                                   ),
