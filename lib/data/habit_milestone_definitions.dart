@@ -320,7 +320,7 @@ const List<HabitMilestone> habitMilestones = [
     trackId: HabitMilestoneTracks.quitCocaine,
     targetDays: 3,
     title: 'Beginning Phase 2',
-    expectation: 'Your mood will improve leading you to want to get high.',
+    expectation: 'You will be tempted by everything today. You can do this.',
     benefit: 'Cocaine has left your body. You can begin to heal.',
   ),
   HabitMilestone(
@@ -328,7 +328,7 @@ const List<HabitMilestone> habitMilestones = [
     trackId: HabitMilestoneTracks.quitCocaine,
     targetDays: 4,
     title: 'Early withdrawal',
-    expectation: 'Cravings may intensify, and sleep, appetite, and mood can still feel unstable.',
+    expectation: 'Your mood will improve leading you to want to get high.',
     benefit: 'Your body is continuing to adjust without cocaine.',
   ),
   HabitMilestone(
