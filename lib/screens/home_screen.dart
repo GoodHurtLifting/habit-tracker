@@ -30,18 +30,27 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseService _databaseService = DatabaseService.instance;
   final WeeklySummaryService _weeklySummaryService = WeeklySummaryService();
+  late final PageController _topPanelPageController;
 
   List<Habit> habits = [];
   List<HabitLog> logs = [];
   WeeklySummary? _mostRecentWeeklySummary;
   String? _lastSeenWeeklySummaryId;
   bool _isLoading = true;
+  int _topPanelCurrentPage = 0;
   final Set<String> _expandedHabitIds = <String>{};
 
   @override
   void initState() {
     super.initState();
+    _topPanelPageController = PageController();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _topPanelPageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -491,41 +500,64 @@ class _HomeScreenState extends State<HomeScreen> {
     return null;
   }
 
-  ({int doneToday, int buildLeft, int avoidLeft, int activeToday})
-      _getLiveDailySummary() {
-    final DateTime today = DateRules.normalizeDate(DateTime.now());
-    int doneToday = 0;
-    int buildLeft = 0;
-    int avoidLeft = 0;
-    int activeToday = 0;
+  Widget _buildTopStatsPanel(List<Habit> activeHabits) {
+    final List<Widget> pages = <Widget>[
+      ...activeHabits.map(_buildExpectationPage),
+      _buildWeeklySummaryPage(),
+      _buildTotalsPage(),
+    ];
 
-    for (final Habit habit in habits) {
-      if (habit.isArchived) {
-        continue;
-      }
-
-      if (!HabitStatsService.canLogHabitForDate(habit, today)) {
-        continue;
-      }
-
-      activeToday++;
-      final HabitLog? todayLog = _getHabitLogForDay(habit.id, today);
-      final bool isSuccess = todayLog?.status == HabitLogStatus.success;
-
-      if (isSuccess) {
-        doneToday++;
-      } else if (habit.type == HabitType.build) {
-        buildLeft++;
-      } else {
-        avoidLeft++;
-      }
+    if (_topPanelCurrentPage >= pages.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _topPanelPageController.jumpToPage(0);
+        setState(() {
+          _topPanelCurrentPage = 0;
+        });
+      });
     }
 
-    return (
-      doneToday: doneToday,
-      buildLeft: buildLeft,
-      avoidLeft: avoidLeft,
-      activeToday: activeToday,
+    return Column(
+      children: [
+        SizedBox(
+          height: 116,
+          child: PageView(
+            controller: _topPanelPageController,
+            onPageChanged: (int index) {
+              setState(() {
+                _topPanelCurrentPage = index;
+              });
+            },
+            children: pages,
+          ),
+        ),
+        if (pages.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List<Widget>.generate(
+                pages.length,
+                (int index) {
+                  final bool isSelected = index == _topPanelCurrentPage;
+                  return Container(
+                    width: isSelected ? 14 : 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.primaryText
+                          : AppTheme.metaText.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -590,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : ListView(
               padding: const EdgeInsets.only(bottom: 120),
               children: [
-                _buildWeeklySummarySection(),
+                _buildTopStatsPanel(activeHabits),
                 if (activeHabits.isEmpty && pausedHabits.isNotEmpty)
                   const AppEmptyState(
                     title: 'All habits are paused',
@@ -622,50 +654,55 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWeeklySummarySection() {
-    if (!_shouldShowWeeklySummary) {
-      final liveSummary = _getLiveDailySummary();
-      final DateTime today = DateRules.normalizeDate(DateTime.now());
+  Widget _buildExpectationPage(Habit habit) {
+    final int streakCount = HabitStatsService.getCurrentStreak(habit, logs);
+    final HabitMilestone? currentMilestone = HabitStatsService.getCurrentMilestone(
+      habit,
+      streakCount,
+    );
+    final String expectation = currentMilestone?.expectation.trim().isNotEmpty == true
+        ? currentMilestone!.expectation.trim()
+        : 'steady progress if you stay consistent';
 
+    return Card(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Expect $expectation — ${habit.name}',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklySummaryPage() {
+    final WeeklySummary? summary = _mostRecentWeeklySummary;
+    if (summary == null) {
       return Card(
         margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Today',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                ),
+        child: const Padding(
+          padding: EdgeInsets.all(12),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'No weekly summary yet',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 2),
-              Text(
-                DateFormatter.weekdayMonthDay(today),
-                style: TextStyle(
-                  color: AppTheme.secondaryText,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  _buildSummaryStat('Done today', liveSummary.doneToday),
-                  _buildSummaryStat('Build left', liveSummary.buildLeft),
-                  _buildSummaryStat('Avoid left', liveSummary.avoidLeft),
-                  _buildSummaryStat('Active today', liveSummary.activeToday),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
-
-    final WeeklySummary summary = _mostRecentWeeklySummary!;
 
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
@@ -685,21 +722,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: _dismissWeeklySummary,
-                  visualDensity: VisualDensity.compact,
-                  iconSize: 18,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minHeight: 24,
-                    minWidth: 24,
+                if (_shouldShowWeeklySummary)
+                  IconButton(
+                    onPressed: _dismissWeeklySummary,
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 18,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minHeight: 24,
+                      minWidth: 24,
+                    ),
+                    tooltip: 'Dismiss weekly summary',
+                    icon: Icon(
+                      Icons.close,
+                      color: AppTheme.secondaryText,
+                    ),
                   ),
-                  tooltip: 'Dismiss weekly summary',
-                  icon: Icon(
-                    Icons.close,
-                    color: AppTheme.secondaryText,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 2),
@@ -730,9 +768,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   summary.totalLoggedDays,
                   valueColor: AppTheme.buildAccent,
                 ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalsPage() {
+    final List<Habit> visibleHabits = habits.where((habit) => !habit.isArchived).toList();
+    final Set<String> visibleHabitIds = visibleHabits.map((Habit habit) => habit.id).toSet();
+    final List<HabitLog> visibleHabitLogs = logs
+        .where((HabitLog log) => visibleHabitIds.contains(log.habitId))
+        .toList();
+    final int totalGoalHits = visibleHabitLogs
+        .where((HabitLog log) => log.status == HabitLogStatus.success)
+        .length;
+    final int totalSlips = visibleHabits
+        .where((Habit habit) => habit.type == HabitType.avoid)
+        .fold<int>(0, (int total, Habit habit) {
+      final List<HabitLog> habitLogs =
+          visibleHabitLogs.where((HabitLog log) => log.habitId == habit.id).toList();
+      return total + HabitStatsService.getDerivedSlipCount(habit, habitLogs);
+    });
+    final int totalLoggedDays = visibleHabitLogs
+        .map((HabitLog log) => DateRules.normalizeDate(log.date).toIso8601String())
+        .toSet()
+        .length;
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Totals',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
                 _buildSummaryStat(
-                  'Habits touched',
-                  summary.totalLoggedHabits,
+                  'Goal hits',
+                  totalGoalHits,
+                  valueColor: AppTheme.buildAccent,
+                ),
+                _buildSummaryStat(
+                  'Slips',
+                  totalSlips,
+                  valueColor: AppTheme.avoidAccent,
+                ),
+                _buildSummaryStat(
+                  'Logged days',
+                  totalLoggedDays,
                   valueColor: AppTheme.primaryText,
                 ),
               ],
