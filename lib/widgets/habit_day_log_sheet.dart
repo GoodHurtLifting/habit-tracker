@@ -173,7 +173,7 @@ class _HabitDayLogSheetState extends State<HabitDayLogSheet> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'This date is locked. You can only log days in the current week.',
+                  'This date is locked. You can only log today and the previous 6 days.',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppTheme.secondaryText,

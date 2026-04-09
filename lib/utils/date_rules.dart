@@ -37,15 +37,13 @@ class DateRules {
     final DateTime referenceNow = now ?? DateTime.now();
     final DateTime day = normalizeDate(date);
     final DateTime today = normalizeDate(referenceNow);
+    final DateTime earliestEditableDay = today.subtract(const Duration(days: 6));
 
     if (day.isAfter(today)) {
       return false;
     }
 
-    final ({DateTime start, DateTime end}) editableWeek =
-        getCurrentEditableWeekRange(now: referenceNow);
-
-    return !day.isBefore(editableWeek.start) && !day.isAfter(editableWeek.end);
+    return !day.isBefore(earliestEditableDay);
   }
 
   static bool canEditDate(

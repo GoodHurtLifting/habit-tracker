@@ -161,7 +161,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         final bool isLockedDay = !isFutureDay && !isEditableDay;
 
                         return InkWell(
-                          onTap: isEditableDay ? () => _showDayLogSheet(day) : null,
+                          onTap: !isFutureDay ? () => _showDayLogSheet(day) : null,
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             decoration: BoxDecoration(
