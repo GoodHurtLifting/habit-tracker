@@ -522,7 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         SizedBox(
-          height: 116,
+          height: 148,
           child: PageView(
             controller: _topPanelPageController,
             onPageChanged: (int index) {
@@ -671,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Expect $expectation — ${habit.name}',
+            '$expectation — ${habit.name}',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -690,7 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return Card(
         margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
         child: const Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
