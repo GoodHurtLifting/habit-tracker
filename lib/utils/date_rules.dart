@@ -37,13 +37,8 @@ class DateRules {
     final DateTime referenceNow = now ?? DateTime.now();
     final DateTime day = normalizeDate(date);
     final DateTime today = normalizeDate(referenceNow);
-    final DateTime earliestEditableDay = today.subtract(const Duration(days: 6));
 
-    if (day.isAfter(today)) {
-      return false;
-    }
-
-    return !day.isBefore(earliestEditableDay);
+    return !day.isAfter(today);
   }
 
   static bool canEditDate(
@@ -61,6 +56,6 @@ class DateRules {
     final DateTime day = normalizeDate(date);
     final DateTime today = normalizeDate(referenceNow);
 
-    return day.isBefore(today) && isDateEditable(day, now: referenceNow);
+    return day.isBefore(today);
   }
 }
