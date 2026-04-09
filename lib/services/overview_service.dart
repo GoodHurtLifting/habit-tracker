@@ -16,18 +16,14 @@ class OverviewService {
 
   final DatabaseService _databaseService;
   final WeeklySummaryService _weeklySummaryService;
-  Set<DateTime> _lockedWeekStarts = <DateTime>{};
 
   Future<void> ensureWeeklySummariesUpToDate() async {
     await _weeklySummaryService.ensureWeeklySummariesUpToDate();
-    _lockedWeekStarts = await _weeklySummaryService.getLockedWeekStarts();
   }
 
   bool canEditDate(DateTime date, {DateTime? now}) {
     final DateTime day = DateRules.normalizeDate(date);
-    final DateTime weekStart = DateRules.startOfWeekMonday(day);
-    final bool isWeekLocked = _lockedWeekStarts.contains(weekStart);
-    return !isWeekLocked && DateRules.canEditDate(day, now: now);
+    return DateRules.canEditDate(day, now: now);
   }
 
   Future<List<DayHabitLogState>> getDayLogStates(DateTime date) async {
