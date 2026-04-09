@@ -19,6 +19,14 @@ class GeoReminderService {
 
   static final GeoReminderService instance = GeoReminderService._();
 
+  GeoReminderConfig? _lastRegisteredConfig;
+  bool _isMonitoringRegistered = false;
+  bool _isRegisteringGeofence = false;
+  bool _isClose(double? a, double? b) {
+    if (a == null || b == null) return a == b;
+    return (a - b).abs() < 0.00001;
+  }
+
   static const String _notificationChannelId = 'geo_avoid_habit_reminder';
   static const int _immediateNotificationId = 711001;
   static const int _followUpNotificationId = 711002;
@@ -45,7 +53,7 @@ class GeoReminderService {
 
   Future<void> refreshMonitoringFromPreferences() async {
     final GeoReminderConfig config =
-        await LocalPreferencesService.getGeoReminderConfig();
+    await LocalPreferencesService.getGeoReminderConfig();
 
     await _debugLog('Geo config loaded: '
         'enabled=${config.geoReminderEnabled}, '
@@ -54,6 +62,11 @@ class GeoReminderService {
         'radius=${config.homebaseRadiusMeters}, '
         'habit=${config.protectedAvoidHabitId}, '
         'complete=${config.isCompleteForMonitoring}');
+
+    if (_isRegisteringGeofence) {
+      await _debugLog('Geofence registration already in progress. Skipping.');
+      return;
+    }
 
     if (!config.isCompleteForMonitoring) {
       await _debugLog('Geo monitoring not started: config incomplete');
@@ -83,9 +96,34 @@ class GeoReminderService {
       return;
     }
 
+    final bool sameAsLastConfig =
+        _isMonitoringRegistered &&
+            _lastRegisteredConfig != null &&
+            _lastRegisteredConfig!.geoReminderEnabled == config.geoReminderEnabled &&
+            _isClose(_lastRegisteredConfig!.homebaseLatitude, config.homebaseLatitude) &&
+            _isClose(_lastRegisteredConfig!.homebaseLongitude, config.homebaseLongitude) &&
+            _lastRegisteredConfig!.homebaseRadiusMeters == config.homebaseRadiusMeters &&
+            _lastRegisteredConfig!.protectedAvoidHabitId == config.protectedAvoidHabitId &&
+            _lastRegisteredConfig!.followUpReminderEnabled ==
+                config.followUpReminderEnabled &&
+            _lastRegisteredConfig!.followUpReminderDelayMinutes ==
+                config.followUpReminderDelayMinutes;
+
+    if (sameAsLastConfig) {
+      await _debugLog('Geofence already registered with same config. Skipping.');
+      return;
+    }
+
     try {
+      _isRegisteringGeofence = true;
+      _lastRegisteredConfig = config;
+
       await _debugLog('Geofence registration started');
-      await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
+
+      if (_isMonitoringRegistered) {
+        await _debugLog('Removing existing geofence before re-registering');
+        await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
+      }
 
       await _debugLog('Registering geofence: '
           'id=$_homebaseGeofenceId, '
@@ -106,7 +144,7 @@ class GeoReminderService {
             initialTrigger: false,
           ),
           androidSettings: const AndroidGeofenceSettings(
-            initialTriggers: {GeofenceEvent.enter},
+            initialTriggers: {},
             expiration: Duration(days: 7),
             loiteringDelay: Duration.zero,
             notificationResponsiveness: Duration(minutes: 1),
@@ -116,7 +154,10 @@ class GeoReminderService {
       );
 
       final List<ActiveGeofence> registeredGeofences =
-          await NativeGeofenceManager.instance.getRegisteredGeofences();
+      await NativeGeofenceManager.instance.getRegisteredGeofences();
+
+      _lastRegisteredConfig = config;
+      _isMonitoringRegistered = true;
 
       await _debugLog('Geofence registration succeeded. '
           'Registered geofences count=${registeredGeofences.length}');
@@ -124,10 +165,16 @@ class GeoReminderService {
         await _debugLog('Registered geofence id=${geofence.id}');
       }
     } on NativeGeofenceException catch (e) {
+      _lastRegisteredConfig = null;
+      _isMonitoringRegistered = false;
+      _isRegisteringGeofence = false;
       await _debugLog('Geofence registration failed: '
           'code=${e.code}, message=${e.message}');
       await unregisterHomebaseMonitoring();
     } catch (e, stackTrace) {
+      _lastRegisteredConfig = null;
+      _isMonitoringRegistered = false;
+      _isRegisteringGeofence = false;
       await _debugLog('Unexpected geofence registration error: $e');
       print(stackTrace);
       await unregisterHomebaseMonitoring();
@@ -137,7 +184,9 @@ class GeoReminderService {
   Future<void> unregisterHomebaseMonitoring() async {
     await NativeGeofenceManager.instance.removeGeofenceById(_homebaseGeofenceId);
     await _notifications.cancel(_followUpNotificationId);
-    await _debugLog('Monitoring unregistered');
+    _lastRegisteredConfig = null;
+    _isMonitoringRegistered = false;
+    _isRegisteringGeofence = false;
   }
 
   Future<Position?> captureCurrentLocationForHomebase() async {
